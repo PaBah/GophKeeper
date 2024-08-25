@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-import "buf/validate/validate.proto";
-
-option go_package = "github.com/PaBah/url-shortener.git/proto";
-
-package proto.passkeeper.v1;
-
-service PassKeeperService {}

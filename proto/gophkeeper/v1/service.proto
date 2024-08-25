@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/PaBah/url-shortener.git/proto";
+
+package proto.passkeeper.v1;
+
+// GophKeeperService service provides ability to store date securely
+service GophKeeperService {
+  // Register creates a new user account.
+  rpc Register(AuthRequest) returns (AuthResponse);
+  // Login authenticates a user and returns a token.
+  rpc Login(AuthRequest) returns (AuthResponse);
+  // MultipartUploadFile handles the uploading of a file in multiple parts.
+  rpc MultipartUploadFile(stream MultipartUploadFileRequest)
+      returns (MultipartUploadFileResponse);
+  // BlockStore manages the storage of file blocks.
+  rpc BlockStore(stream BlockStoreRequest) returns (stream BlockStoreResponse);
+  // Ping checks the service availability.
+  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty);
+  // MultipartDownloadFile handles the downloading of a file in multiple parts.
+  rpc MultipartDownloadFile(MultipartDownloadFileRequest)
+      returns (stream MultipartDownloadFileResponse);
+  // ApplyChanges applies changes made during a block store operation.
+  rpc ApplyChanges(ApplyChangesRequest) returns (ApplyChangesResponse);
+}
+
+
