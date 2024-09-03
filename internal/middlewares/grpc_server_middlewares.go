@@ -9,6 +9,7 @@ import (
 	"github.com/PaBah/GophKeeper/internal/auth"
 	"github.com/PaBah/GophKeeper/internal/config"
 	"github.com/PaBah/GophKeeper/internal/gen/proto/gophkeeper/v1"
+	"github.com/PaBah/GophKeeper/internal/logger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -17,7 +18,6 @@ import (
 )
 
 type GRPCServerMiddleware struct {
-	logger *zap.Logger
 	secret string
 }
 
@@ -29,10 +29,9 @@ var (
 )
 
 // NewGRPCServerMiddleware initializes a MyMiddleware instance with provided logger and secret.
-func NewGRPCServerMiddleware(logger *zap.Logger, secret string) *GRPCServerMiddleware {
+func NewGRPCServerMiddleware(secret string) *GRPCServerMiddleware {
 	once.Do(func() {
 		instance = &GRPCServerMiddleware{
-			logger: logger,
 			secret: secret,
 		}
 	})
@@ -48,57 +47,49 @@ func (m GRPCServerMiddleware) AuthInterceptor(ctx context.Context,
 	switch info.FullMethod {
 	case proto.GophKeeperService_SignUp_FullMethodName,
 		proto.GophKeeperService_SignIn_FullMethodName:
-		m.logger.Debug("No protected method", zap.String("method", info.FullMethod))
+		logger.Log().Debug("No protected method", zap.String("method", info.FullMethod))
 
 		return handler(ctx, req)
 	}
 
-	m.logger.Debug("Protected method")
-	m.logger.Debug(info.FullMethod)
+	logger.Log().Debug("Protected method")
+	logger.Log().Debug(info.FullMethod)
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		m.logger.Debug("couldn't extract metadata from req")
+		logger.Log().Debug("couldn't extract metadata from req")
 
 		return nil, fmt.Errorf("%w", status.Error(codes.Internal, "couldn't extract metadata from req"))
 	}
 
 	authHeaders, ok := md[config.AUTHORIZATIONHEADER]
 	if !ok || len(authHeaders) != 1 {
-		m.logger.Debug("authorization not exists")
+		logger.Log().Debug("authorization not exists")
 
-		return nil, fmt.Errorf("%w", status.Error(codes.Unauthenticated, "authorization not exists"))
+		return nil, status.Errorf(codes.Unauthenticated, "authorization not exists")
 	}
 
 	token := strings.TrimPrefix(authHeaders[0], config.TOKENPREFIX)
 	if token == "" {
-		m.logger.Debug("token empty or not valid")
+		logger.Log().Debug("token empty or not valid")
 
-		return nil, fmt.Errorf("%w", status.Error(codes.Unauthenticated, "token empty or not valid"))
+		return nil, status.Errorf(codes.Unauthenticated, "token empty or not valid")
 	}
 
 	if isValid, err := auth.IsValidToken(token, m.secret); err != nil || !isValid {
-		m.logger.Debug("token is not valid")
+		logger.Log().Debug("token is not valid")
 
-		return nil, fmt.Errorf("%w", status.Error(codes.Unauthenticated, "token empty or not valid"))
-	}
-	username, err := auth.GetUserEmailFromToken(token, m.secret)
-	if err != nil {
-		m.logger.Debug("cannot get username")
-
-		return nil, fmt.Errorf("%w", status.Error(codes.Unauthenticated, "token empty or not valid"))
+		return nil, status.Errorf(codes.Unauthenticated, "token empty or not valid")
 	}
 
 	userID := auth.GetUserID(token, m.secret)
 	if userID == "" {
-		m.logger.Debug("cannot get userID")
+		logger.Log().Debug("cannot get userID")
 
-		return nil, fmt.Errorf("%w", status.Error(codes.Unauthenticated, "token empty or not valid"))
+		return nil, status.Errorf(codes.Unauthenticated, "token empty or not valid")
 	}
 
 	//nolint:staticcheck
-	newCtx := context.WithValue(ctx, config.USEREMAILCONTEXTKEY, username)
-	//nolint:staticcheck
-	newCtx = context.WithValue(newCtx, config.USERIDCONTEXTKEY, userID)
+	newCtx := context.WithValue(ctx, config.USERIDCONTEXTKEY, userID)
 
 	return handler(newCtx, req)
 }

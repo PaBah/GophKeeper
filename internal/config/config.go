@@ -2,7 +2,7 @@ package config
 
 const (
 	AUTHORIZATIONHEADER = "authorization"
-	TOKENPREFIX         = ""
+	TOKENPREFIX         = "Bearer "
 	TOKENCONTEXTKEY     = "token"
 	USEREMAILCONTEXTKEY = "email"
 	USERIDCONTEXTKEY    = "userID"

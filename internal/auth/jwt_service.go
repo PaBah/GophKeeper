@@ -72,20 +72,3 @@ func IsValidToken(tokenString string, secret string) (bool, error) {
 
 	return true, nil
 }
-
-// GetUserEmailFromToken extracts the username from the provided JWT token.
-func GetUserEmailFromToken(tokenString, secretKey string) (string, error) {
-	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(secretKey), nil
-	})
-	if err != nil {
-		return "", fmt.Errorf("%w", err)
-	}
-
-	if !token.Valid {
-		return "", fmt.Errorf("%w", err)
-	}
-
-	return claims.Email, nil
-}
