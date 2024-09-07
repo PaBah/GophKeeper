@@ -1,17 +1,5 @@
-2024/09/03 21:20:51 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:52 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:52 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:53 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:53 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:54 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:54 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:55 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:55 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:56 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:56 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:57 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:57 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:58 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:59 State 1 Form 0 ChangedForm true
-2024/09/03 21:20:59 State 1 Form 0 ChangedForm true
-2024/09/03 21:21:00 State 1 Form 0 ChangedForm true
+2024/09/07 23:35:50 CreateCredentials d5e27439-bd54-4a6d-9a27-6fe66a8a6d10
+2024/09/07 23:42:05 CreateCard last_digits:"12 3456" expiration_date:"12/45" uploaded_at:"2024-09-07T23:42:05+03:00"
+2024/09/07 23:54:18 CreateCredentials bc631104-8a9f-4482-9900-007672810aac
+2024/09/07 23:55:05 CreateCard last_digits:"7654"  expiration_date:"12/65"  uploaded_at:"2024-09-07T23:55:05+03:00"
+2024/09/08 00:03:13 CreateCard last_digits:"7963"  expiration_date:"12/25"  uploaded_at:"2024-09-08T00:03:13+03:00"
