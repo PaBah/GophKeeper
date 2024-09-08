@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log"
 	"time"
 
 	pb "github.com/PaBah/GophKeeper/internal/gen/proto/gophkeeper/v1"
@@ -24,6 +23,7 @@ type Client interface {
 type ClientService struct {
 	client        pb.GophKeeperServiceClient
 	token         string
+	sessionID     string
 	serverAddress string
 	conn          *grpc.ClientConn
 	isAvailable   bool
@@ -62,7 +62,7 @@ func (c *ClientService) SignIn(email, password string) error {
 }
 
 func (c *ClientService) CreateCredentials(ctx context.Context, serviceName, identity, password string) error {
-	resp, err := c.client.CreateCredentials(c.getCtx(ctx, c.token), &pb.CreateCredentialsRequest{
+	_, err := c.client.CreateCredentials(c.getCtx(ctx, c.token), &pb.CreateCredentialsRequest{
 		ServiceName: serviceName,
 		Identity:    identity,
 		Password:    password,
@@ -70,7 +70,6 @@ func (c *ClientService) CreateCredentials(ctx context.Context, serviceName, iden
 	if err != nil {
 		return fmt.Errorf("CreateCredentials: %w", err)
 	}
-	log.Println("CreateCredentials", resp.Id)
 	return nil
 }
 
@@ -125,14 +124,13 @@ func (c *ClientService) DeleteCredentials(ctx context.Context, credentialsID str
 }
 
 func (c *ClientService) CreateCard(ctx context.Context, number, expirationDate, holderName, cvv string) error {
-	qwe, err := c.client.CreateCard(c.getCtx(ctx, c.token), &pb.CreateCardRequest{
+	_, err := c.client.CreateCard(c.getCtx(ctx, c.token), &pb.CreateCardRequest{
 		Number:         number,
 		ExpirationDate: expirationDate,
 		HolderName:     holderName,
 		Cvv:            cvv,
 	})
 
-	log.Println("CreateCard", qwe)
 	if err != nil {
 		return fmt.Errorf("CreateCard: %w", err)
 	}
@@ -191,6 +189,14 @@ func (c *ClientService) DeleteCard(ctx context.Context, cardID string) (err erro
 	return
 }
 
+func (c *ClientService) SubscribeToChanges(ctx context.Context) (grpc.ServerStreamingClient[pb.SubscribeToChangesResponse], error) {
+	return c.client.SubscribeToChanges(c.getCtx(ctx, c.token), &pb.SubscribeToChangesRequest{})
+}
+
+func (c *ClientService) SetSessionID(sessionID string) {
+	c.sessionID = sessionID
+}
+
 // IsNotAvailable checks if the server is not available.
 func (c *ClientService) IsNotAvailable() bool {
 	return !c.isAvailable
@@ -222,6 +228,7 @@ func (c *ClientService) TryToConnect() bool {
 func (c *ClientService) getCtx(ctx context.Context, jwt string) context.Context {
 	md := metadata.New(map[string]string{
 		"authorization": jwt,
+		"session":       c.sessionID,
 	})
 
 	newCtx := metadata.NewOutgoingContext(ctx, md)

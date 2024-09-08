@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
+	"io"
+	"log"
 	"net/mail"
 
+	pb "github.com/PaBah/GophKeeper/internal/gen/proto/gophkeeper/v1"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -61,6 +65,33 @@ func (form *AuthForm) Update(m *Model, msg tea.Msg) (*Model, tea.Cmd) {
 					}
 				}
 				if m.err == nil {
+					stream, err := m.clientService.SubscribeToChanges(context.Background())
+					if err != nil {
+						log.Fatal(err)
+					}
+					go func() {
+						for {
+							var resp pb.SubscribeToChangesResponse
+							err := stream.RecvMsg(&resp)
+							if err == io.EOF {
+								break
+							}
+							if err != nil {
+								log.Fatal(err)
+							}
+							switch resp.Source {
+							case credentials:
+								if m.dashboardScreen.cursor == credentials {
+									m.dashboardScreen.updateMsg = "GophKeeper: credentials changed, shift → to refresh"
+								}
+							case cards:
+								if m.dashboardScreen.cursor == cards {
+									m.dashboardScreen.updateMsg = "GophKeeper: cards changed, shift → to refresh"
+								}
+
+							}
+						}
+					}()
 					m.state = Dashboard
 					m.dashboardScreen.tableNavigation = false
 				}

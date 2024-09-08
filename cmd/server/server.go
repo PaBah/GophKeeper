@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
+	"sync"
 	"time"
 
 	"github.com/PaBah/GophKeeper/internal/auth"
@@ -12,6 +12,7 @@ import (
 	"github.com/PaBah/GophKeeper/internal/models"
 	"github.com/PaBah/GophKeeper/internal/storage"
 	"github.com/PaBah/GophKeeper/internal/utils"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,6 +23,9 @@ type GrpcServer struct {
 	logger  *zap.Logger
 	config  *config.ServerConfig
 	storage storage.Repository
+
+	syncClients map[string]map[string]pb.GophKeeperService_SubscribeToChangesServer
+	rwMutex     *sync.RWMutex
 }
 
 // SignIn - handler for Sign In
@@ -33,7 +37,8 @@ func (s *GrpcServer) SignIn(ctx context.Context, in *pb.SignInRequest) (*pb.Sign
 		return response, status.Errorf(codes.Unavailable, "User with such credentials can not be logined")
 	}
 
-	JWTToken, err := auth.BuildJWTString(user.ID, s.config.Secret)
+	sessionID := uuid.New().String()
+	JWTToken, err := auth.BuildJWTString(user.ID, sessionID, s.config.Secret)
 	if err != nil {
 		return response, status.Errorf(codes.Internal, "Can not build auth token")
 	}
@@ -52,8 +57,9 @@ func (s *GrpcServer) SignUp(ctx context.Context, in *pb.SignUpRequest) (*pb.Sign
 	if errors.Is(err, storage.ErrAlreadyExists) {
 		return response, status.Errorf(codes.InvalidArgument, "User with such email already exists")
 	}
-	fmt.Println(createdUser)
-	JWTToken, err := auth.BuildJWTString(createdUser.ID, s.config.Secret)
+
+	sessionID := uuid.New().String()
+	JWTToken, err := auth.BuildJWTString(createdUser.ID, sessionID, s.config.Secret)
 	if err != nil {
 		return response, status.Errorf(codes.Unauthenticated, err.Error())
 	}
@@ -76,7 +82,7 @@ func (s *GrpcServer) CreateCredentials(ctx context.Context, in *pb.CreateCredent
 	if err != nil {
 		return response, status.Errorf(codes.Unauthenticated, err.Error())
 	}
-
+	s.SendNotifications(ctx, 0, createdCredentials.ID)
 	response.Id = createdCredentials.ID
 	response.ServiceName = createdCredentials.ServiceName
 	response.UploadedAt = createdCredentials.UploadedAt.Format(time.RFC3339)
@@ -102,7 +108,6 @@ func (s *GrpcServer) GetCredentials(ctx context.Context, in *pb.GetCredentialsRe
 			UploadedAt:  credentialSet.UploadedAt.Format(time.RFC3339),
 		})
 	}
-
 	return response, nil
 }
 
@@ -120,7 +125,7 @@ func (s *GrpcServer) UpdateCredentials(ctx context.Context, in *pb.UpdateCredent
 	if err != nil {
 		return response, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-
+	s.SendNotifications(ctx, 0, createdCredentials.ID)
 	response.Id = createdCredentials.ID
 	response.ServiceName = createdCredentials.ServiceName
 	response.UploadedAt = createdCredentials.UploadedAt.Format(time.RFC3339)
@@ -137,7 +142,7 @@ func (s *GrpcServer) DeleteCredentials(ctx context.Context, in *pb.DeleteCredent
 	if err != nil {
 		return response, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-
+	s.SendNotifications(ctx, 0, in.Id)
 	return response, nil
 }
 
@@ -155,7 +160,7 @@ func (s *GrpcServer) CreateCard(ctx context.Context, in *pb.CreateCardRequest) (
 	if err != nil {
 		return response, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-
+	s.SendNotifications(ctx, 1, createdCard.ID)
 	response.LastDigits = createdCard.Number[12:]
 	response.ExpirationDate = createdCard.ExpirationDate
 	response.UploadedAt = createdCard.UploadedAt.Format(time.RFC3339)
@@ -182,7 +187,6 @@ func (s *GrpcServer) GetCards(ctx context.Context, in *pb.GetCardsRequest) (*pb.
 			UploadedAt:     card.UploadedAt.Format(time.RFC3339),
 		})
 	}
-
 	return response, nil
 }
 
@@ -205,7 +209,7 @@ func (s *GrpcServer) UpdateCard(ctx context.Context, in *pb.UpdateCardRequest) (
 	if err != nil {
 		return response, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-
+	s.SendNotifications(ctx, 1, card.ID)
 	response.LastDigits = card.Number[12:]
 	response.ExpirationDate = card.ExpirationDate
 	response.UploadedAt = card.UploadedAt.Format(time.RFC3339)
@@ -222,15 +226,50 @@ func (s *GrpcServer) DeleteCard(ctx context.Context, in *pb.DeleteCardRequest) (
 	if err != nil {
 		return response, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-
+	s.SendNotifications(ctx, 1, in.Id)
 	return response, nil
+}
+
+// SubscribeToChanges - stream changes to clients
+func (s *GrpcServer) SubscribeToChanges(in *pb.SubscribeToChangesRequest, stream pb.GophKeeperService_SubscribeToChangesServer) error {
+	ctx, cancel := context.WithCancel(stream.Context())
+	userID, _ := ctx.Value(config.USERIDCONTEXTKEY).(string)
+	sessionID, _ := ctx.Value(config.SESSIONIDCONTEXTKEY).(string)
+	defer cancel()
+	s.rwMutex.Lock()
+	if len(s.syncClients[userID]) == 0 {
+		s.syncClients[userID] = make(map[string]pb.GophKeeperService_SubscribeToChangesServer)
+	}
+	s.syncClients[userID][sessionID] = stream
+	s.rwMutex.Unlock()
+	for {
+		time.Sleep(time.Minute)
+	}
+}
+
+// SendNotifications - stream all user session with update
+func (s *GrpcServer) SendNotifications(ctx context.Context, resource int, ID string) {
+	sessionID, _ := ctx.Value(config.SESSIONIDCONTEXTKEY).(string)
+	userID, _ := ctx.Value(config.USERIDCONTEXTKEY).(string)
+	s.rwMutex.Lock()
+	for session, client := range s.syncClients[userID] {
+		if session != sessionID {
+			client.Send(&pb.SubscribeToChangesResponse{
+				Source: int32(resource),
+				Id:     ID,
+			})
+		}
+	}
+	s.rwMutex.Unlock()
 }
 
 // NewGrpcServer - creates new gRPC server instance
 func NewGrpcServer(config *config.ServerConfig, storage storage.Repository) *GrpcServer {
 	s := GrpcServer{
-		config:  config,
-		storage: storage,
+		config:      config,
+		storage:     storage,
+		syncClients: make(map[string]map[string]pb.GophKeeperService_SubscribeToChangesServer),
+		rwMutex:     &sync.RWMutex{},
 	}
 	return &s
 }

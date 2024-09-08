@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
+	"github.com/PaBah/GophKeeper/internal/models"
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -46,11 +48,14 @@ const (
 )
 
 type DashboardScreen struct {
-	cursor          int
-	tableCursor     int
-	menu            []string
-	content         string
-	tableNavigation bool
+	cursor           int
+	tableCursor      int
+	cardsState       []models.Card
+	credentialsState []models.Credentials
+	menu             []string
+	content          string
+	updateMsg        string
+	tableNavigation  bool
 }
 
 func NewDashboardScreen() *DashboardScreen {
@@ -75,11 +80,6 @@ func (ds *DashboardScreen) renderRow(index int, cols ...string) string {
 }
 
 func (ds *DashboardScreen) drawCredentials(m *Model) string {
-	credentials, err := m.clientService.GetCredentials(context.Background())
-	if err != nil {
-		m.err = err
-		return ""
-	}
 	headers := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		headerStyle.Render("ID"),
@@ -87,7 +87,7 @@ func (ds *DashboardScreen) drawCredentials(m *Model) string {
 		headerStyle.Render("UploadedAt"),
 	)
 	tableData := []string{borderStyle.Render(headers)}
-	for index, credential := range credentials {
+	for index, credential := range ds.credentialsState {
 		row := lipgloss.JoinHorizontal(
 			lipgloss.Top,
 			ds.renderRow(index, credential.ID, credential.ServiceName, credential.UploadedAt.Format(time.RFC3339)),
@@ -104,11 +104,6 @@ func (ds *DashboardScreen) drawCredentials(m *Model) string {
 }
 
 func (ds *DashboardScreen) drawCards(m *Model) string {
-	cards, err := m.clientService.GetCards(context.Background())
-	if err != nil {
-		m.err = err
-		return ""
-	}
 	headers := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		headerStyle.Render("LastDigits"),
@@ -116,7 +111,7 @@ func (ds *DashboardScreen) drawCards(m *Model) string {
 		headerStyle.Render("UploadedAt"),
 	)
 	tableData := []string{borderStyle.Render(headers)}
-	for index, card := range cards {
+	for index, card := range ds.cardsState {
 		row := lipgloss.JoinHorizontal(
 			lipgloss.Top,
 			ds.renderRow(index, "*"+card.Number[12:], card.ExpirationDate, card.UploadedAt.Format(time.RFC3339)),
@@ -146,11 +141,9 @@ func (ds *DashboardScreen) drawContent(m *Model) string {
 func (ds *DashboardScreen) getListAmount(m *Model) int {
 	switch ds.cursor {
 	case credentials:
-		list, _ := m.clientService.GetCredentials(context.Background())
-		return len(list)
+		return len(ds.credentialsState)
 	case cards:
-		list, _ := m.clientService.GetCards(context.Background())
-		return len(list)
+		return len(ds.cardsState)
 	default:
 		return 0
 	}
@@ -171,6 +164,12 @@ func formatCardNumber(cardNumber string) string {
 }
 
 func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
+	if ds.updateMsg != "" {
+		m.err = errors.New(ds.updateMsg)
+	} else {
+		m.err = nil
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -225,20 +224,18 @@ func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch ds.cursor {
 			case credentials:
 				m.credentialsScreen.createMode = false
-				list, _ := m.clientService.GetCredentials(context.Background())
-				m.credentialsScreen.inputs[serviceName].SetValue(list[ds.tableCursor].ServiceName)
-				m.credentialsScreen.inputs[identity].SetValue(list[ds.tableCursor].Identity)
-				m.credentialsScreen.inputs[password].SetValue(list[ds.tableCursor].Password)
-				m.credentialsScreen.updateID = list[ds.tableCursor].ID
+				m.credentialsScreen.inputs[serviceName].SetValue(ds.credentialsState[ds.tableCursor].ServiceName)
+				m.credentialsScreen.inputs[identity].SetValue(ds.credentialsState[ds.tableCursor].Identity)
+				m.credentialsScreen.inputs[password].SetValue(ds.credentialsState[ds.tableCursor].Password)
+				m.credentialsScreen.updateID = ds.credentialsState[ds.tableCursor].ID
 				m.state = CredentialsForm
 			case cards:
 				m.cardsScreen.createMode = false
-				list, _ := m.clientService.GetCards(context.Background())
-				m.cardsScreen.inputs[cardNumber].SetValue(formatCardNumber(list[ds.tableCursor].Number))
-				m.cardsScreen.inputs[expiryDate].SetValue(list[ds.tableCursor].ExpirationDate)
-				m.cardsScreen.inputs[cardHolder].SetValue(list[ds.tableCursor].HolderName)
-				m.cardsScreen.inputs[cvv].SetValue(list[ds.tableCursor].CVV)
-				m.cardsScreen.updateID = list[ds.tableCursor].ID
+				m.cardsScreen.inputs[cardNumber].SetValue(formatCardNumber(ds.cardsState[ds.tableCursor].Number))
+				m.cardsScreen.inputs[expiryDate].SetValue(ds.cardsState[ds.tableCursor].ExpirationDate)
+				m.cardsScreen.inputs[cardHolder].SetValue(ds.cardsState[ds.tableCursor].HolderName)
+				m.cardsScreen.inputs[cvv].SetValue(ds.cardsState[ds.tableCursor].CVV)
+				m.cardsScreen.updateID = ds.cardsState[ds.tableCursor].ID
 				m.state = CardForm
 			default:
 				return m, nil
@@ -246,14 +243,14 @@ func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "f3":
 			switch ds.cursor {
 			case credentials:
-				list, _ := m.clientService.GetCredentials(context.Background())
-				_ = m.clientService.DeleteCredentials(context.Background(), list[ds.tableCursor].ID)
+				_ = m.clientService.DeleteCredentials(context.Background(), ds.credentialsState[ds.tableCursor].ID)
 				ds.tableCursor = max(ds.tableCursor-1, 0)
+				ds.loadActual(m)
 				ds.content = ds.drawContent(m)
 			case cards:
-				list, _ := m.clientService.GetCards(context.Background())
-				_ = m.clientService.DeleteCard(context.Background(), list[ds.tableCursor].ID)
+				_ = m.clientService.DeleteCard(context.Background(), ds.cardsState[ds.tableCursor].ID)
 				ds.tableCursor = max(ds.tableCursor-1, 0)
+				ds.loadActual(m)
 				ds.content = ds.drawContent(m)
 			default:
 				return m, nil
@@ -261,45 +258,45 @@ func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "f4":
 			switch ds.cursor {
 			case credentials:
-				list, _ := m.clientService.GetCredentials(context.Background())
-				_ = clipboard.WriteAll(list[ds.tableCursor].Identity)
+				_ = clipboard.WriteAll(ds.credentialsState[ds.tableCursor].Identity)
 			case cards:
-				list, _ := m.clientService.GetCards(context.Background())
-				_ = clipboard.WriteAll(list[ds.tableCursor].Number)
+				_ = clipboard.WriteAll(ds.cardsState[ds.tableCursor].Number)
 			default:
 				return m, nil
 			}
 		case "f5":
 			switch ds.cursor {
 			case credentials:
-				list, _ := m.clientService.GetCredentials(context.Background())
-				_ = clipboard.WriteAll(list[ds.tableCursor].Password)
+				_ = clipboard.WriteAll(ds.credentialsState[ds.tableCursor].Password)
 			case cards:
-				list, _ := m.clientService.GetCards(context.Background())
-				_ = clipboard.WriteAll(list[ds.tableCursor].ExpirationDate)
+				_ = clipboard.WriteAll(ds.cardsState[ds.tableCursor].ExpirationDate)
 			default:
 				return m, nil
 			}
 		case "f6":
 			switch ds.cursor {
 			case cards:
-				list, _ := m.clientService.GetCards(context.Background())
-				_ = clipboard.WriteAll(list[ds.tableCursor].HolderName)
+				_ = clipboard.WriteAll(ds.cardsState[ds.tableCursor].HolderName)
 			default:
 				return m, nil
 			}
 		case "f7":
 			switch ds.cursor {
 			case cards:
-				list, _ := m.clientService.GetCards(context.Background())
-				_ = clipboard.WriteAll(list[ds.tableCursor].CVV)
+				_ = clipboard.WriteAll(ds.cardsState[ds.tableCursor].CVV)
 			default:
 				return m, nil
+			}
+		case "shift+right":
+			if m.err != nil {
+				ds.loadActual(m)
+				ds.content = ds.drawContent(m)
 			}
 		case "enter":
 			if !ds.tableNavigation {
 				ds.tableNavigation = true
 				ds.tableCursor = 0
+				ds.loadActual(m)
 				ds.content = ds.drawContent(m)
 				if ds.menu[ds.cursor] == "Exit" {
 					return m, tea.Quit
@@ -307,8 +304,17 @@ func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-
 	return m, nil
+}
+
+func (ds *DashboardScreen) loadActual(m *Model) {
+	ds.updateMsg = ""
+	switch ds.cursor {
+	case credentials:
+		ds.credentialsState, _ = m.clientService.GetCredentials(context.Background())
+	case cards:
+		ds.cardsState, _ = m.clientService.GetCards(context.Background())
+	}
 }
 
 func (ds *DashboardScreen) View(m *Model) string {

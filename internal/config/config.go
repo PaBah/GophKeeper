@@ -2,10 +2,12 @@ package config
 
 const (
 	AUTHORIZATIONHEADER = "authorization"
+	SESSIONHEADER       = "session"
 	TOKENPREFIX         = "Bearer "
 	TOKENCONTEXTKEY     = "token"
 	USEREMAILCONTEXTKEY = "email"
 	USERIDCONTEXTKEY    = "userID"
+	SESSIONIDCONTEXTKEY = "sessionID"
 )
 
 // ServerConfig - shortener server configurations

@@ -10,6 +10,7 @@ import (
 	"github.com/PaBah/GophKeeper/internal/config"
 	"github.com/PaBah/GophKeeper/internal/gen/proto/gophkeeper/v1"
 	"github.com/PaBah/GophKeeper/internal/logger"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -88,8 +89,76 @@ func (m GRPCServerMiddleware) AuthInterceptor(ctx context.Context,
 		return nil, status.Errorf(codes.Unauthenticated, "token empty or not valid")
 	}
 
-	//nolint:staticcheck
-	newCtx := context.WithValue(ctx, config.USERIDCONTEXTKEY, userID)
+	sessionID := auth.GetSessionID(token, m.secret)
+	if sessionID == "" {
+		logger.Log().Debug("cannot get sessionID")
 
-	return handler(newCtx, req)
+		return nil, status.Errorf(codes.Unauthenticated, "token empty or not valid")
+	}
+
+	//nolint:staticcheck
+	userCtx := context.WithValue(ctx, config.USERIDCONTEXTKEY, userID)
+	sessionCtx := context.WithValue(userCtx, config.SESSIONIDCONTEXTKEY, sessionID)
+
+	return handler(sessionCtx, req)
+}
+
+// StreamAuthInterceptor provides a gRPC stream interceptor for authentication.
+func (m GRPCServerMiddleware) StreamAuthInterceptor(srv interface{},
+	ss grpc.ServerStream,
+	info *grpc.StreamServerInfo,
+	handler grpc.StreamHandler) error {
+	// Получаем контекст из потокового сервера
+	ctx := ss.Context()
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return status.Error(codes.Internal, "couldn't extract metadata from req")
+	}
+
+	authHeaders, ok := md[config.AUTHORIZATIONHEADER]
+	if !ok || len(authHeaders) != 1 {
+		logger.Log().Debug("authorization not exists")
+		return status.Error(codes.Unauthenticated, "authorization not exists")
+	}
+
+	token := strings.TrimPrefix(authHeaders[0], config.TOKENPREFIX)
+	if token == "" {
+		logger.Log().Debug("token empty or not valid")
+
+		return status.Error(codes.Unauthenticated, "token empty or not valid")
+	}
+
+	if isValid, err := auth.IsValidToken(token, m.secret); err != nil || !isValid {
+		logger.Log().Debug("token is not valid")
+
+		return status.Errorf(codes.Unauthenticated, "token empty or not valid")
+	}
+
+	userID := auth.GetUserID(token, m.secret)
+	if userID == "" {
+		logger.Log().Debug("cannot get userID")
+
+		return status.Errorf(codes.Unauthenticated, "token empty or not valid")
+	}
+
+	sessionID := auth.GetSessionID(token, m.secret)
+	if sessionID == "" {
+		logger.Log().Debug("cannot get sessionID")
+
+		return status.Errorf(codes.Unauthenticated, "token empty or not valid")
+	}
+
+	//nolint:staticcheck
+	userCtx := context.WithValue(ctx, config.USERIDCONTEXTKEY, userID)
+	sessionCtx := context.WithValue(userCtx, config.SESSIONIDCONTEXTKEY, sessionID)
+	wrappedStream := grpc_middleware.WrapServerStream(ss)
+	wrappedStream.WrappedContext = sessionCtx
+
+	//userCtx = context.WithValue(sessionCtx, config.USERIDCONTEXTKEY, userID)
+	//sessionCtx = context.WithValue(userCtx, config.SESSIONIDCONTEXTKEY, sessionID)
+	//wrappedStream = grpc_middleware.WrapServerStream(ss)
+	//wrappedStream.WrappedContext = sessionCtx
+
+	return handler(srv, wrappedStream)
 }

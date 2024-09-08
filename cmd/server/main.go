@@ -68,7 +68,10 @@ func main() {
 		err = tls.CreateTLSCert(certFilePath, keyFilePath)
 		creds, _ := credentials.NewServerTLSFromFile(certFilePath, keyFilePath)
 		s = grpc.NewServer(grpc.Creds(creds),
-			grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(authInterceptor...)))
+			grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(authInterceptor...)),
+			grpc.MaxConcurrentStreams(20),
+			grpc.StreamInterceptor(interceptors.StreamAuthInterceptor),
+		)
 
 		pb.RegisterGophKeeperServiceServer(s, newGRPCServer)
 

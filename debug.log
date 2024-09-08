@@ -1,5 +1,15 @@
-2024/09/07 23:35:50 CreateCredentials d5e27439-bd54-4a6d-9a27-6fe66a8a6d10
-2024/09/07 23:42:05 CreateCard last_digits:"12 3456" expiration_date:"12/45" uploaded_at:"2024-09-07T23:42:05+03:00"
-2024/09/07 23:54:18 CreateCredentials bc631104-8a9f-4482-9900-007672810aac
-2024/09/07 23:55:05 CreateCard last_digits:"7654"  expiration_date:"12/65"  uploaded_at:"2024-09-07T23:55:05+03:00"
-2024/09/08 00:03:13 CreateCard last_digits:"7963"  expiration_date:"12/25"  uploaded_at:"2024-09-08T00:03:13+03:00"
+2024/09/08 12:47:08 rpc error: code = Unavailable desc = error reading from server: read tcp 127.0.0.1:51704->127.0.0.1:3200: read: connection reset by peer
+2024/09/08 12:48:22 Получено обновление данных:  bdbcfcf0-8e8a-4c8a-a328-21d244d84291 0
+2024/09/08 13:12:30 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 13:18:11 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 13:18:11 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 13:20:55 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 13:20:55 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 13:26:49 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 13:26:49 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 13:32:55 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 13:32:55 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 14:07:19 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 14:07:19 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 14:11:14 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 14:11:14 rpc error: code = Unavailable desc = error reading from server: EOF

@@ -76,6 +76,7 @@ func (form *CredentialsScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd
 					}
 				}
 				if m.err == nil {
+					m.dashboardScreen.loadActual(m)
 					m.dashboardScreen.content = m.dashboardScreen.drawContent(m)
 					m.state = Dashboard
 				}
