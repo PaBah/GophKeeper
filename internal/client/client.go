@@ -4,6 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	pb "github.com/PaBah/GophKeeper/internal/gen/proto/gophkeeper/v1"
@@ -157,6 +161,23 @@ func (c *ClientService) GetCards(ctx context.Context) (cards []models.Card, err 
 	return
 }
 
+func (c *ClientService) GetFiles(ctx context.Context) (files []models.File, err error) {
+	resp, err := c.client.GetFiles(c.getCtx(ctx, c.token), &pb.GetFilesRequest{})
+	if err != nil {
+		err = fmt.Errorf("GetCards: %w", err)
+		return
+	}
+	for _, card := range resp.Files {
+		uploadedAt, _ := time.Parse(time.RFC3339, card.UploadedAt)
+		files = append(files, models.File{
+			Name:       card.Name,
+			Size:       card.Size,
+			UploadedAt: uploadedAt,
+		})
+	}
+	return
+}
+
 func (c *ClientService) UpdateCards(ctx context.Context, card models.Card) (updatedCard models.Card, err error) {
 	response, err := c.client.UpdateCard(c.getCtx(ctx, c.token), &pb.UpdateCardRequest{
 		Id:             card.ID,
@@ -188,7 +209,47 @@ func (c *ClientService) DeleteCard(ctx context.Context, cardID string) (err erro
 
 	return
 }
+func (c *ClientService) UploadFile(ctx context.Context, filePath string) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Fatalf("could not open file: %v", err)
+	}
+	defer file.Close()
 
+	stream, err := c.client.UploadFile(c.getCtx(ctx, c.token))
+	if err != nil {
+		log.Fatalf("could not upload file: %v", err)
+	}
+
+	buffer := make([]byte, 1024)
+	for {
+		n, err := file.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("could not read file: %v", err)
+		}
+
+		if err := stream.Send(&pb.UploadFileRequest{
+			Data:     buffer[:n],
+			Filename: filepath.Base(filePath),
+		}); err != nil {
+			log.Fatalf("could not send chunk: %v", err)
+		}
+	}
+	// Завершаем передачу
+	if err := stream.CloseSend(); err != nil {
+		log.Fatalf("could not close stream: %v", err)
+	}
+
+	// Получаем ответ от сервера
+	resp, err := stream.Recv()
+	if err != nil {
+		log.Fatalf("could not receive response: %v", err)
+	}
+	log.Printf("Response from server: %s", resp.Message)
+}
 func (c *ClientService) SubscribeToChanges(ctx context.Context) (grpc.ServerStreamingClient[pb.SubscribeToChangesResponse], error) {
 	return c.client.SubscribeToChanges(c.getCtx(ctx, c.token), &pb.SubscribeToChangesRequest{})
 }

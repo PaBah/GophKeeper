@@ -52,6 +52,7 @@ type DashboardScreen struct {
 	tableCursor      int
 	cardsState       []models.Card
 	credentialsState []models.Credentials
+	filesState       []models.File
 	menu             []string
 	content          string
 	updateMsg        string
@@ -127,12 +128,38 @@ func (ds *DashboardScreen) drawCards(m *Model) string {
 	return table
 }
 
+func (ds *DashboardScreen) drawFiles(m *Model) string {
+	headers := lipgloss.JoinHorizontal(
+		lipgloss.Top,
+		headerStyle.Render("Name"),
+		headerStyle.Render("UploadedAt"),
+		headerStyle.Render("Size"),
+	)
+	tableData := []string{borderStyle.Render(headers)}
+	for index, file := range ds.filesState {
+		row := lipgloss.JoinHorizontal(
+			lipgloss.Top,
+			ds.renderRow(index, file.Name, file.UploadedAt.Format(time.RFC3339), file.Size),
+		)
+		tableData = append(tableData, borderStyle.Render(row))
+	}
+
+	table := lipgloss.JoinVertical(
+		lipgloss.Left,
+		tableData...,
+	)
+
+	return table
+}
+
 func (ds *DashboardScreen) drawContent(m *Model) string {
 	switch ds.cursor {
 	case credentials:
 		return ds.drawCredentials(m)
 	case cards:
 		return ds.drawCards(m)
+	case files:
+		return ds.drawFiles(m)
 	default:
 		return ""
 	}
@@ -144,6 +171,8 @@ func (ds *DashboardScreen) getListAmount(m *Model) int {
 		return len(ds.credentialsState)
 	case cards:
 		return len(ds.cardsState)
+	case files:
+		return len(ds.filesState)
 	default:
 		return 0
 	}
@@ -217,6 +246,8 @@ func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cardsScreen.inputs[cvv].SetValue("")
 				m.cardsScreen.updateID = ""
 				m.state = CardForm
+			case files:
+				m.state = FileLoad
 			default:
 				return m, nil
 			}
@@ -298,7 +329,7 @@ func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 				ds.tableCursor = 0
 				ds.loadActual(m)
 				ds.content = ds.drawContent(m)
-				if ds.menu[ds.cursor] == "Exit" {
+				if ds.cursor == exit {
 					return m, tea.Quit
 				}
 			}
@@ -314,6 +345,8 @@ func (ds *DashboardScreen) loadActual(m *Model) {
 		ds.credentialsState, _ = m.clientService.GetCredentials(context.Background())
 	case cards:
 		ds.cardsState, _ = m.clientService.GetCards(context.Background())
+	case files:
+		ds.filesState, _ = m.clientService.GetFiles(context.Background())
 	}
 }
 

@@ -29,7 +29,10 @@ const (
 	GophKeeperService_GetCards_FullMethodName           = "/proto.gophkeeper.v1.GophKeeperService/GetCards"
 	GophKeeperService_UpdateCard_FullMethodName         = "/proto.gophkeeper.v1.GophKeeperService/UpdateCard"
 	GophKeeperService_DeleteCard_FullMethodName         = "/proto.gophkeeper.v1.GophKeeperService/DeleteCard"
+	GophKeeperService_GetFiles_FullMethodName           = "/proto.gophkeeper.v1.GophKeeperService/GetFiles"
+	GophKeeperService_DeleteFile_FullMethodName         = "/proto.gophkeeper.v1.GophKeeperService/DeleteFile"
 	GophKeeperService_SubscribeToChanges_FullMethodName = "/proto.gophkeeper.v1.GophKeeperService/SubscribeToChanges"
+	GophKeeperService_UploadFile_FullMethodName         = "/proto.gophkeeper.v1.GophKeeperService/UploadFile"
 )
 
 // GophKeeperServiceClient is the client API for GophKeeperService service.
@@ -48,7 +51,10 @@ type GophKeeperServiceClient interface {
 	GetCards(ctx context.Context, in *GetCardsRequest, opts ...grpc.CallOption) (*GetCardsResponse, error)
 	UpdateCard(ctx context.Context, in *UpdateCardRequest, opts ...grpc.CallOption) (*UpdateCardResponse, error)
 	DeleteCard(ctx context.Context, in *DeleteCardRequest, opts ...grpc.CallOption) (*DeleteCardResponse, error)
+	GetFiles(ctx context.Context, in *GetFilesRequest, opts ...grpc.CallOption) (*GetFilesResponse, error)
+	DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*DeleteFileResponse, error)
 	SubscribeToChanges(ctx context.Context, in *SubscribeToChangesRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SubscribeToChangesResponse], error)
+	UploadFile(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[UploadFileRequest, UploadFileResponse], error)
 }
 
 type gophKeeperServiceClient struct {
@@ -159,6 +165,26 @@ func (c *gophKeeperServiceClient) DeleteCard(ctx context.Context, in *DeleteCard
 	return out, nil
 }
 
+func (c *gophKeeperServiceClient) GetFiles(ctx context.Context, in *GetFilesRequest, opts ...grpc.CallOption) (*GetFilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFilesResponse)
+	err := c.cc.Invoke(ctx, GophKeeperService_GetFiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gophKeeperServiceClient) DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*DeleteFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteFileResponse)
+	err := c.cc.Invoke(ctx, GophKeeperService_DeleteFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *gophKeeperServiceClient) SubscribeToChanges(ctx context.Context, in *SubscribeToChangesRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SubscribeToChangesResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &GophKeeperService_ServiceDesc.Streams[0], GophKeeperService_SubscribeToChanges_FullMethodName, cOpts...)
@@ -178,6 +204,19 @@ func (c *gophKeeperServiceClient) SubscribeToChanges(ctx context.Context, in *Su
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GophKeeperService_SubscribeToChangesClient = grpc.ServerStreamingClient[SubscribeToChangesResponse]
 
+func (c *gophKeeperServiceClient) UploadFile(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[UploadFileRequest, UploadFileResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &GophKeeperService_ServiceDesc.Streams[1], GophKeeperService_UploadFile_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[UploadFileRequest, UploadFileResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GophKeeperService_UploadFileClient = grpc.BidiStreamingClient[UploadFileRequest, UploadFileResponse]
+
 // GophKeeperServiceServer is the server API for GophKeeperService service.
 // All implementations must embed UnimplementedGophKeeperServiceServer
 // for forward compatibility.
@@ -194,7 +233,10 @@ type GophKeeperServiceServer interface {
 	GetCards(context.Context, *GetCardsRequest) (*GetCardsResponse, error)
 	UpdateCard(context.Context, *UpdateCardRequest) (*UpdateCardResponse, error)
 	DeleteCard(context.Context, *DeleteCardRequest) (*DeleteCardResponse, error)
+	GetFiles(context.Context, *GetFilesRequest) (*GetFilesResponse, error)
+	DeleteFile(context.Context, *DeleteFileRequest) (*DeleteFileResponse, error)
 	SubscribeToChanges(*SubscribeToChangesRequest, grpc.ServerStreamingServer[SubscribeToChangesResponse]) error
+	UploadFile(grpc.BidiStreamingServer[UploadFileRequest, UploadFileResponse]) error
 	mustEmbedUnimplementedGophKeeperServiceServer()
 }
 
@@ -235,8 +277,17 @@ func (UnimplementedGophKeeperServiceServer) UpdateCard(context.Context, *UpdateC
 func (UnimplementedGophKeeperServiceServer) DeleteCard(context.Context, *DeleteCardRequest) (*DeleteCardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteCard not implemented")
 }
+func (UnimplementedGophKeeperServiceServer) GetFiles(context.Context, *GetFilesRequest) (*GetFilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFiles not implemented")
+}
+func (UnimplementedGophKeeperServiceServer) DeleteFile(context.Context, *DeleteFileRequest) (*DeleteFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteFile not implemented")
+}
 func (UnimplementedGophKeeperServiceServer) SubscribeToChanges(*SubscribeToChangesRequest, grpc.ServerStreamingServer[SubscribeToChangesResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeToChanges not implemented")
+}
+func (UnimplementedGophKeeperServiceServer) UploadFile(grpc.BidiStreamingServer[UploadFileRequest, UploadFileResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method UploadFile not implemented")
 }
 func (UnimplementedGophKeeperServiceServer) mustEmbedUnimplementedGophKeeperServiceServer() {}
 func (UnimplementedGophKeeperServiceServer) testEmbeddedByValue()                           {}
@@ -439,6 +490,42 @@ func _GophKeeperService_DeleteCard_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GophKeeperService_GetFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GophKeeperServiceServer).GetFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GophKeeperService_GetFiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GophKeeperServiceServer).GetFiles(ctx, req.(*GetFilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GophKeeperService_DeleteFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GophKeeperServiceServer).DeleteFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GophKeeperService_DeleteFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GophKeeperServiceServer).DeleteFile(ctx, req.(*DeleteFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _GophKeeperService_SubscribeToChanges_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(SubscribeToChangesRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -449,6 +536,13 @@ func _GophKeeperService_SubscribeToChanges_Handler(srv interface{}, stream grpc.
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GophKeeperService_SubscribeToChangesServer = grpc.ServerStreamingServer[SubscribeToChangesResponse]
+
+func _GophKeeperService_UploadFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(GophKeeperServiceServer).UploadFile(&grpc.GenericServerStream[UploadFileRequest, UploadFileResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GophKeeperService_UploadFileServer = grpc.BidiStreamingServer[UploadFileRequest, UploadFileResponse]
 
 // GophKeeperService_ServiceDesc is the grpc.ServiceDesc for GophKeeperService service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -497,12 +591,26 @@ var GophKeeperService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "DeleteCard",
 			Handler:    _GophKeeperService_DeleteCard_Handler,
 		},
+		{
+			MethodName: "GetFiles",
+			Handler:    _GophKeeperService_GetFiles_Handler,
+		},
+		{
+			MethodName: "DeleteFile",
+			Handler:    _GophKeeperService_DeleteFile_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "SubscribeToChanges",
 			Handler:       _GophKeeperService_SubscribeToChanges_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "UploadFile",
+			Handler:       _GophKeeperService_UploadFile_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "proto/gophkeeper/v1/service.proto",

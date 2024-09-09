@@ -26,6 +26,7 @@ type Model struct {
 	clientService     *client.ClientService
 	credentialsScreen *CredentialsScreen
 	cardsScreen       *CardScreen
+	filesScreen       *FilePicker
 }
 
 var (
@@ -71,7 +72,7 @@ const (
 )
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, textinput.Blink)
+	return tea.Batch(m.filesScreen.filepicker.Init(), m.spinner.Tick, textinput.Blink)
 }
 
 type Styles struct {
@@ -112,6 +113,7 @@ func NewModel(state State) Model {
 	m.dashboardScreen = NewDashboardScreen()
 	m.credentialsScreen = NewCredentialsScreen()
 	m.cardsScreen = NewCardScreen()
+	m.filesScreen = NewFilePicker()
 	m.lg = lipgloss.DefaultRenderer()
 	m.styles = NewStyles(m.lg)
 	return m
@@ -133,6 +135,8 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = Dashboard
 			case CardForm:
 				m.state = Dashboard
+			case FileLoad:
+				m.state = Dashboard
 			case Dashboard:
 				if m.initialScreen.AuthThroughSignIn {
 					m.state = SignIn
@@ -146,6 +150,12 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	m.spinner, cmd = m.spinner.Update(message)
 	cmds = append(cmds, cmd)
+	if m.state == FileLoad {
+		_, cmd = m.filesScreen.Update(&m, message)
+		cmds = append(cmds, cmd)
+	} else {
+		cmds = append(cmds, m.filesScreen.filepicker.Init())
+	}
 	switch m.state {
 	case Initial:
 		var cmd tea.Cmd
@@ -171,6 +181,10 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		_, cmd = m.cardsScreen.Update(&m, message)
 		cmds = append(cmds, cmd)
+		//case FileLoad:
+		//	var cmd tea.Cmd
+		//	_, cmd = m.filesScreen.Update(&m, message)
+		//	cmds = append(cmds, cmd)
 	}
 	return m, tea.Batch(cmds...)
 }
@@ -203,6 +217,10 @@ func (m Model) View() string {
 			lines = []string{
 				"shft+tab back", "← menu", "F1 new", "F2 update", "F3 delete", "F4 copy number", "F5 copy expiration", "F6 copy holder", "F7 copy CVV",
 			}
+		case files:
+			lines = []string{
+				"shft+tab back", "← menu", "F1 upload", "F2 download", "F3 delete",
+			}
 		}
 		if !m.dashboardScreen.tableNavigation {
 			lines = []string{"shft+tab back"}
@@ -214,6 +232,11 @@ func (m Model) View() string {
 		footer = strings.Join(lines, helpSeparator) + " "
 	case CardForm:
 		body = m.cardsScreen.View(&m)
+		lines := []string{"shft+tab back"}
+		footer = strings.Join(lines, helpSeparator) + " "
+	case FileLoad:
+		//return m.filesScreen.View(&m)
+		body = m.filesScreen.View(&m)
 		lines := []string{"shft+tab back"}
 		footer = strings.Join(lines, helpSeparator) + " "
 	default:
@@ -238,7 +261,7 @@ func (m Model) appFooterView(text string) string {
 		m.width,
 		lipgloss.Left,
 		m.styles.Help.Render(text),
-		lipgloss.WithWhitespaceChars("/"),
+		lipgloss.WithWhitespaceChars("\\"),
 		lipgloss.WithWhitespaceForeground(indigo),
 	)
 }

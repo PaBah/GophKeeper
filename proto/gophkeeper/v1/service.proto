@@ -21,7 +21,11 @@ service GophKeeperService {
   rpc UpdateCard(UpdateCardRequest) returns (UpdateCardResponse);
   rpc DeleteCard(DeleteCardRequest) returns (DeleteCardResponse);
 
+  rpc GetFiles(GetFilesRequest) returns (GetFilesResponse);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+
   rpc SubscribeToChanges(SubscribeToChangesRequest) returns (stream SubscribeToChangesResponse);
+  rpc UploadFile(stream UploadFileRequest) returns (stream UploadFileResponse);
 }
 
 message SignUpRequest {
@@ -143,4 +147,33 @@ message SubscribeToChangesRequest {
 message SubscribeToChangesResponse {
   int32 source = 1;
   string id = 2;
+}
+
+message UploadFileRequest {
+  bytes data = 1;
+  string filename = 2;
+}
+
+message UploadFileResponse {
+  string message = 1;
+  bool success = 2;
+}
+
+message GetFilesRequest {
+}
+
+message GetFilesResponse {
+  message File {
+    string name = 1;
+    string uploaded_at = 2;
+    string size = 3;
+  }
+  repeated File files = 1;
+}
+
+message DeleteFileRequest {
+  string name = 1;
+}
+
+message DeleteFileResponse {
 }

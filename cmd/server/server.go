@@ -1,10 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
+	"log"
 	"sync"
 	"time"
+
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 
 	"github.com/PaBah/GophKeeper/internal/auth"
 	"github.com/PaBah/GophKeeper/internal/config"
@@ -20,9 +26,10 @@ import (
 
 type GrpcServer struct {
 	pb.UnimplementedGophKeeperServiceServer
-	logger  *zap.Logger
-	config  *config.ServerConfig
-	storage storage.Repository
+	logger      *zap.Logger
+	config      *config.ServerConfig
+	storage     storage.Repository
+	minioClient *minio.Client
 
 	syncClients map[string]map[string]pb.GophKeeperService_SubscribeToChangesServer
 	rwMutex     *sync.RWMutex
@@ -62,6 +69,11 @@ func (s *GrpcServer) SignUp(ctx context.Context, in *pb.SignUpRequest) (*pb.Sign
 	JWTToken, err := auth.BuildJWTString(createdUser.ID, sessionID, s.config.Secret)
 	if err != nil {
 		return response, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+
+	err = s.minioClient.MakeBucket(context.Background(), createdUser.ID, minio.MakeBucketOptions{})
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	response.Token = JWTToken
@@ -263,11 +275,62 @@ func (s *GrpcServer) SendNotifications(ctx context.Context, resource int, ID str
 	s.rwMutex.Unlock()
 }
 
+func (s *GrpcServer) UploadFile(stream pb.GophKeeperService_UploadFileServer) error {
+	var objectName string
+	var fileData []byte
+	userID, _ := stream.Context().Value(config.USERIDCONTEXTKEY).(string)
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			reader := io.NopCloser(bytes.NewReader(fileData))
+			_, err := s.minioClient.PutObject(context.Background(), userID, objectName, reader, int64(len(fileData)), minio.PutObjectOptions{})
+			if err != nil {
+				return err
+			}
+			return stream.Send(&pb.UploadFileResponse{
+				Message: "File uploaded successfully",
+				Success: true,
+			})
+		}
+		if err != nil {
+			return err
+		}
+
+		fileData = append(fileData, req.Data...)
+		objectName = req.Filename
+	}
+}
+
+func (s *GrpcServer) GetFiles(ctx context.Context, in *pb.GetFilesRequest) (*pb.GetFilesResponse, error) {
+	response := &pb.GetFilesResponse{}
+
+	objectCh := s.minioClient.ListObjects(ctx, ctx.Value(config.USERIDCONTEXTKEY).(string), minio.ListObjectsOptions{})
+	for object := range objectCh {
+		response.Files = append(response.Files, &pb.GetFilesResponse_File{
+			Name:       object.Key,
+			Size:       utils.HumanReadableSize(uint64(object.Size)),
+			UploadedAt: object.LastModified.Format(time.RFC3339),
+		})
+	}
+	return response, nil
+}
+
 // NewGrpcServer - creates new gRPC server instance
 func NewGrpcServer(config *config.ServerConfig, storage storage.Repository) *GrpcServer {
+	// Настраиваем соединение с MinIO
+	minioClient, err := minio.New("127.0.0.1:9000", &minio.Options{
+		Creds:  credentials.NewStaticV4("admin", "password123", ""),
+		Secure: false,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	s := GrpcServer{
 		config:      config,
 		storage:     storage,
+		minioClient: minioClient,
 		syncClients: make(map[string]map[string]pb.GophKeeperService_SubscribeToChangesServer),
 		rwMutex:     &sync.RWMutex{},
 	}

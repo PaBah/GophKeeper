@@ -13,3 +13,54 @@
 2024/09/08 14:07:19 rpc error: code = Unavailable desc = error reading from server: EOF
 2024/09/08 14:11:14 rpc error: code = Unavailable desc = error reading from server: EOF
 2024/09/08 14:11:14 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 15:42:13 Selected file: /Users/Shared
+2024/09/08 15:45:15 Selected file: /Users/home
+2024/09/08 15:45:16 Selected file: /Users/home
+2024/09/08 15:48:26 Selected file: /Users/home
+2024/09/08 15:48:57 Selected file: /Users/paulbahush/projects/BestLifePay/ynb-develop/composer.json
+2024/09/08 15:49:07 Selected file: /Users/paulbahush/projects/BestLifePay/ynb-develop/README.md
+2024/09/08 15:49:07 Selected file: /Users/paulbahush/projects/BestLifePay/ynb-develop/README.md
+2024/09/08 15:49:07 Selected file: /Users/paulbahush/projects/BestLifePay/ynb-develop/README.md
+2024/09/08 15:50:53 Selected file: /Users/paulbahush
+2024/09/08 15:50:58 Selected file: /Users/paulbahush/projects
+2024/09/08 15:51:05 Selected file: /Users/paulbahush/projects/toucan
+2024/09/08 15:51:17 Selected file: /Users/paulbahush/projects/toucan/toucan-api-review/toucan_api/notifications/base_notification_service.py
+2024/09/08 16:04:14 qwe /Users/paulbahush
+2024/09/08 16:05:26 qwe /Users/paulbahush
+2024/09/08 16:05:58 qwe /Users/paulbahush
+2024/09/08 16:06:56 qwe /Users/paulbahush
+2024/09/08 16:14:19 qwe /Users/paulbahush
+2024/09/08 16:16:26 qwe /Users/paulbahush
+2024/09/08 16:18:16 qwe /Users/paulbahush
+2024/09/08 16:20:45 qwe /Users/paulbahush
+2024/09/08 16:21:47 qwe /Users/paulbahush
+2024/09/08 16:26:32 qwe /Users/paulbahush
+2024/09/08 16:39:29 qwe /Users/paulbahush
+2024/09/08 16:40:48 qwe /Users/paulbahush
+2024/09/08 16:42:31 Selected file: /Users/paulbahush/Downloads/01.jpg
+2024/09/08 16:43:11 qwe /Users/paulbahush
+2024/09/08 16:43:30 Selected file: /Users/paulbahush/Downloads/01.jpg
+2024/09/08 16:43:57 qwe /Users/paulbahush
+2024/09/08 16:44:42 qwe /Users/paulbahush
+2024/09/08 16:45:11 Selected file: /Users/paulbahush/Downloads/event/IMG_7840.MOV
+2024/09/08 16:46:26 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 17:09:07 qwe /Users/paulbahush
+2024/09/08 17:10:49 qwe /Users/paulbahush
+2024/09/08 23:15:50 qwe /Users/paulbahush
+2024/09/08 23:16:17 Selected file: /Users/paulbahush/Downloads/01.jpg
+2024/09/08 23:19:41 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 23:25:31 qwe /Users/paulbahush
+2024/09/08 23:25:59 Selected file: /Users/paulbahush/Downloads/01.jpg
+2024/09/08 23:25:59 could not receive response: rpc error: code = Unknown desc = The specified bucket does not exist
+2024/09/08 23:26:52 qwe /Users/paulbahush
+2024/09/08 23:27:53 qwe /Users/paulbahush
+2024/09/08 23:28:17 Selected file: /Users/paulbahush/Downloads/01.jpg
+2024/09/08 23:32:17 could not receive response: rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/08 23:32:34 qwe /Users/paulbahush
+2024/09/08 23:33:20 qwe /Users/paulbahush
+2024/09/08 23:33:44 Selected file: /Users/paulbahush/Downloads/01.jpg
+2024/09/08 23:33:44 Response from server: File uploaded successfully
+2024/09/09 00:00:59 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/09 00:01:05 qwe /Users/paulbahush
+2024/09/09 00:01:37 Selected file: /Users/paulbahush/Downloads/DSCF2881.JPG
+2024/09/09 00:01:37 Response from server: File uploaded successfully

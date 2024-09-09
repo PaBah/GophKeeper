@@ -31,6 +31,12 @@ type Card struct {
 	UploadedAt     time.Time `json:"uploaded_at"`
 }
 
+type File struct {
+	Name       string    `json:"name"`
+	Size       string    `json:"size"`
+	UploadedAt time.Time `json:"uploaded_at"`
+}
+
 func NewUser(email string, originalPassword string) User {
 	return User{Email: email, Password: utils.PasswordHash(originalPassword)}
 }
