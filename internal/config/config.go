@@ -1,13 +1,12 @@
 package config
 
+type headerKey string
+
 const (
-	AUTHORIZATIONHEADER = "authorization"
-	SESSIONHEADER       = "session"
-	TOKENPREFIX         = "Bearer "
-	TOKENCONTEXTKEY     = "token"
-	USEREMAILCONTEXTKEY = "email"
-	USERIDCONTEXTKEY    = "userID"
-	SESSIONIDCONTEXTKEY = "sessionID"
+	AUTHORIZATIONHEADER headerKey = "authorization"
+	TOKENPREFIX         headerKey = "Bearer "
+	USERIDCONTEXTKEY    headerKey = "userID"
+	SESSIONIDCONTEXTKEY headerKey = "sessionID"
 )
 
 // ServerConfig - shortener server configurations

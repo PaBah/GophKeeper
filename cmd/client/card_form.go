@@ -17,16 +17,18 @@ type CardScreen struct {
 	inputs     []textinput.Model
 	updateID   string
 	createMode bool
-	focused    int
+	focused    cardFormInput
 	title      string
 }
 
+type cardFormInput int
+
 const (
-	cardNumber      = 0
-	expiryDate      = 1
-	cardHolder      = 2
-	cvv             = 3
-	totalCardFields = 4
+	cardNumber      cardFormInput = 0
+	expiryDate      cardFormInput = 1
+	cardHolder      cardFormInput = 2
+	cvv             cardFormInput = 3
+	totalCardFields cardFormInput = 4
 )
 
 func NewCardScreen() *CardScreen {
@@ -122,7 +124,7 @@ func (form *CardScreen) moveFocusForward() {
 	if form.focused < totalCardFields {
 		form.inputs[form.focused].Blur()
 		form.focused++
-		if len(form.inputs)-1 >= form.focused {
+		if len(form.inputs)-1 >= int(form.focused) {
 			form.inputs[form.focused].Focus()
 		}
 	}
@@ -135,7 +137,7 @@ func (form *CardScreen) handleDownKey(m *Model) (tea.Model, tea.Cmd) {
 
 func (form *CardScreen) handleUpKey(m *Model) (tea.Model, tea.Cmd) {
 	if form.focused > 0 {
-		if len(form.inputs)-1 >= form.focused {
+		if len(form.inputs)-1 >= int(form.focused) {
 			form.inputs[form.focused].Blur()
 		}
 		form.focused--

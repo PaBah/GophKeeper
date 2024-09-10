@@ -62,14 +62,14 @@ func (m GRPCServerMiddleware) AuthInterceptor(ctx context.Context,
 		return nil, fmt.Errorf("%w", status.Error(codes.Internal, "couldn't extract metadata from req"))
 	}
 
-	authHeaders, ok := md[config.AUTHORIZATIONHEADER]
+	authHeaders, ok := md[string(config.AUTHORIZATIONHEADER)]
 	if !ok || len(authHeaders) != 1 {
 		logger.Log().Debug("authorization not exists")
 
 		return nil, status.Errorf(codes.Unauthenticated, "authorization not exists")
 	}
 
-	token := strings.TrimPrefix(authHeaders[0], config.TOKENPREFIX)
+	token := strings.TrimPrefix(authHeaders[0], string(config.TOKENPREFIX))
 	if token == "" {
 		logger.Log().Debug("token empty or not valid")
 
@@ -96,7 +96,6 @@ func (m GRPCServerMiddleware) AuthInterceptor(ctx context.Context,
 		return nil, status.Errorf(codes.Unauthenticated, "token empty or not valid")
 	}
 
-	//nolint:staticcheck
 	userCtx := context.WithValue(ctx, config.USERIDCONTEXTKEY, userID)
 	sessionCtx := context.WithValue(userCtx, config.SESSIONIDCONTEXTKEY, sessionID)
 
@@ -116,13 +115,13 @@ func (m GRPCServerMiddleware) StreamAuthInterceptor(srv interface{},
 		return status.Error(codes.Internal, "couldn't extract metadata from req")
 	}
 
-	authHeaders, ok := md[config.AUTHORIZATIONHEADER]
+	authHeaders, ok := md[string(config.AUTHORIZATIONHEADER)]
 	if !ok || len(authHeaders) != 1 {
 		logger.Log().Debug("authorization not exists")
 		return status.Error(codes.Unauthenticated, "authorization not exists")
 	}
 
-	token := strings.TrimPrefix(authHeaders[0], config.TOKENPREFIX)
+	token := strings.TrimPrefix(authHeaders[0], string(config.TOKENPREFIX))
 	if token == "" {
 		logger.Log().Debug("token empty or not valid")
 

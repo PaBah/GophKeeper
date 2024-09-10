@@ -14,15 +14,17 @@ type CredentialsScreen struct {
 	inputs     []textinput.Model
 	updateID   string
 	createMode bool
-	focused    int
+	focused    credentialsFormInput
 	title      string
 }
 
+type credentialsFormInput int
+
 const (
-	serviceName            = 0
-	identity               = 1
-	password               = 2
-	totalCredentialsFields = 3
+	serviceName            credentialsFormInput = 0
+	identity               credentialsFormInput = 1
+	password               credentialsFormInput = 2
+	totalCredentialsFields credentialsFormInput = 3
 )
 
 func NewCredentialsScreen() *CredentialsScreen {
@@ -116,7 +118,7 @@ func (form *CredentialsScreen) moveFocusForward() {
 	if form.focused < totalCredentialsFields {
 		form.inputs[form.focused].Blur()
 		form.focused++
-		if len(form.inputs)-1 >= form.focused {
+		if len(form.inputs)-1 >= int(form.focused) {
 			form.inputs[form.focused].Focus()
 		}
 	}
@@ -129,7 +131,7 @@ func (form *CredentialsScreen) handleDownKey(m *Model) (tea.Model, tea.Cmd) {
 
 func (form *CredentialsScreen) handleUpKey(m *Model) (tea.Model, tea.Cmd) {
 	if form.focused > 0 {
-		if len(form.inputs)-1 >= form.focused {
+		if len(form.inputs)-1 >= int(form.focused) {
 			form.inputs[form.focused].Blur()
 		}
 		form.focused--

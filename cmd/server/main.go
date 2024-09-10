@@ -65,7 +65,7 @@ func main() {
 			certFilePath = "cert.pem" // certFilePath - path to TLS certificate
 			keyFilePath  = "key.pem"  // keyFilePath - path to TLS key
 		)
-		err = tls.CreateTLSCert(certFilePath, keyFilePath)
+		_ = tls.CreateTLSCert(certFilePath, keyFilePath)
 		creds, _ := credentials.NewServerTLSFromFile(certFilePath, keyFilePath)
 		s = grpc.NewServer(grpc.Creds(creds),
 			grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(authInterceptor...)),

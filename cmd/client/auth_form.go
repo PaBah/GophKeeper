@@ -116,11 +116,11 @@ func (form *AuthForm) handleSubscription(stream pb.GophKeeperService_SubscribeTo
 		if err != nil {
 			log.Fatal(err)
 		}
-		form.updateDashboardOnChange(m, int(resp.Source))
+		form.updateDashboardOnChange(m, menuItem(resp.Source))
 	}
 }
 
-func (form *AuthForm) updateDashboardOnChange(m *Model, source int) {
+func (form *AuthForm) updateDashboardOnChange(m *Model, source menuItem) {
 	switch source {
 	case credentials:
 		if m.dashboardScreen.cursor == credentials {

@@ -40,15 +40,17 @@ var (
 	contentStyle = lipgloss.NewStyle().Padding(1, 2)
 )
 
+type menuItem int
+
 const (
-	credentials = iota
+	credentials menuItem = iota
 	cards
 	files
 	exit
 )
 
 type DashboardScreen struct {
-	cursor           int
+	cursor           menuItem
 	tableCursor      int
 	cardsState       []models.Card
 	credentialsState []models.Credentials
@@ -192,160 +194,6 @@ func formatCardNumber(cardNumber string) string {
 	return strings.Join(result, " ")
 }
 
-func (ds *DashboardScreen) _Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
-	if ds.updateMsg != "" {
-		m.err = errors.New(ds.updateMsg)
-	} else {
-		m.err = nil
-	}
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "up":
-			if !ds.tableNavigation {
-				if ds.cursor > 0 {
-					ds.cursor--
-				}
-			} else {
-				if ds.tableCursor > 0 {
-					ds.tableCursor--
-					ds.content = ds.drawContent(m)
-				}
-			}
-		case "down":
-			if !ds.tableNavigation {
-				if ds.cursor < len(ds.menu)-1 {
-					ds.cursor++
-				}
-			} else {
-				if ds.tableCursor < ds.getListAmount(m)-1 {
-					ds.tableCursor++
-					ds.content = ds.drawContent(m)
-				}
-			}
-		case "left":
-			if ds.tableNavigation {
-				ds.content = defaultMessage
-				ds.tableNavigation = false
-			}
-		case "f1":
-			switch ds.cursor {
-			case credentials:
-				m.credentialsScreen.createMode = true
-				m.credentialsScreen.inputs[serviceName].SetValue("")
-				m.credentialsScreen.inputs[identity].SetValue("")
-				m.credentialsScreen.inputs[password].SetValue("")
-				m.credentialsScreen.updateID = ""
-				m.state = CredentialsForm
-			case cards:
-				m.cardsScreen.createMode = true
-				m.cardsScreen.inputs[cardNumber].SetValue("")
-				m.cardsScreen.inputs[expiryDate].SetValue("")
-				m.cardsScreen.inputs[cardHolder].SetValue("")
-				m.cardsScreen.inputs[cvv].SetValue("")
-				m.cardsScreen.updateID = ""
-				m.state = CardForm
-			case files:
-				m.state = FileLoad
-				return m, m.filesScreen.filepicker.Init()
-			default:
-				return m, nil
-			}
-		case "f2":
-			switch ds.cursor {
-			case credentials:
-				m.credentialsScreen.createMode = false
-				m.credentialsScreen.inputs[serviceName].SetValue(ds.credentialsState[ds.tableCursor].ServiceName)
-				m.credentialsScreen.inputs[identity].SetValue(ds.credentialsState[ds.tableCursor].Identity)
-				m.credentialsScreen.inputs[password].SetValue(ds.credentialsState[ds.tableCursor].Password)
-				m.credentialsScreen.updateID = ds.credentialsState[ds.tableCursor].ID
-				m.state = CredentialsForm
-			case cards:
-				m.cardsScreen.createMode = false
-				m.cardsScreen.inputs[cardNumber].SetValue(formatCardNumber(ds.cardsState[ds.tableCursor].Number))
-				m.cardsScreen.inputs[expiryDate].SetValue(ds.cardsState[ds.tableCursor].ExpirationDate)
-				m.cardsScreen.inputs[cardHolder].SetValue(ds.cardsState[ds.tableCursor].HolderName)
-				m.cardsScreen.inputs[cvv].SetValue(ds.cardsState[ds.tableCursor].CVV)
-				m.cardsScreen.updateID = ds.cardsState[ds.tableCursor].ID
-				m.state = CardForm
-			case files:
-				m.clientService.DownloadsFile(context.Background(), ds.filesState[ds.tableCursor].Name)
-			default:
-				return m, nil
-			}
-		case "f3":
-			switch ds.cursor {
-			case credentials:
-				_ = m.clientService.DeleteCredentials(context.Background(), ds.credentialsState[ds.tableCursor].ID)
-				ds.tableCursor = max(ds.tableCursor-1, 0)
-				ds.loadActual(m)
-				ds.content = ds.drawContent(m)
-			case cards:
-				_ = m.clientService.DeleteCard(context.Background(), ds.cardsState[ds.tableCursor].ID)
-				ds.tableCursor = max(ds.tableCursor-1, 0)
-				ds.loadActual(m)
-				ds.content = ds.drawContent(m)
-			case files:
-				_ = m.clientService.DeleteFile(context.Background(), ds.filesState[ds.tableCursor].Name)
-				ds.tableCursor = max(ds.tableCursor-1, 0)
-				ds.loadActual(m)
-				ds.content = ds.drawContent(m)
-			default:
-				return m, nil
-			}
-		case "f4":
-			switch ds.cursor {
-			case credentials:
-				_ = clipboard.WriteAll(ds.credentialsState[ds.tableCursor].Identity)
-			case cards:
-				_ = clipboard.WriteAll(ds.cardsState[ds.tableCursor].Number)
-			default:
-				return m, nil
-			}
-		case "f5":
-			switch ds.cursor {
-			case credentials:
-				_ = clipboard.WriteAll(ds.credentialsState[ds.tableCursor].Password)
-			case cards:
-				_ = clipboard.WriteAll(ds.cardsState[ds.tableCursor].ExpirationDate)
-			default:
-				return m, nil
-			}
-		case "f6":
-			switch ds.cursor {
-			case cards:
-				_ = clipboard.WriteAll(ds.cardsState[ds.tableCursor].HolderName)
-			default:
-				return m, nil
-			}
-		case "f7":
-			switch ds.cursor {
-			case cards:
-				_ = clipboard.WriteAll(ds.cardsState[ds.tableCursor].CVV)
-			default:
-				return m, nil
-			}
-		case "shift+right":
-			if m.err != nil {
-				ds.loadActual(m)
-				ds.content = ds.drawContent(m)
-			}
-		case "enter":
-			if !ds.tableNavigation {
-				ds.tableNavigation = true
-				ds.tableCursor = 0
-				ds.loadActual(m)
-				ds.content = ds.drawContent(m)
-				if ds.cursor == exit {
-					return m, tea.Quit
-				}
-			}
-		}
-	}
-	return m, nil
-}
-
 func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	ds.updateErrorMessage(m)
 
@@ -411,7 +259,7 @@ func (ds *DashboardScreen) handleUpKey(m *Model) {
 
 func (ds *DashboardScreen) handleDownKey(m *Model) {
 	if !ds.tableNavigation {
-		if ds.cursor < len(ds.menu)-1 {
+		if int(ds.cursor) < len(ds.menu)-1 {
 			ds.cursor++
 		}
 	} else {
@@ -439,12 +287,12 @@ func (ds *DashboardScreen) handleCredentialsCreate(m *Model) {
 }
 
 func (ds *DashboardScreen) handleCardsCreate(m *Model) {
-	m.cardsScreen.createMode = false
-	m.cardsScreen.inputs[cardNumber].SetValue(formatCardNumber(ds.cardsState[ds.tableCursor].Number))
-	m.cardsScreen.inputs[expiryDate].SetValue(ds.cardsState[ds.tableCursor].ExpirationDate)
-	m.cardsScreen.inputs[cardHolder].SetValue(ds.cardsState[ds.tableCursor].HolderName)
-	m.cardsScreen.inputs[cvv].SetValue(ds.cardsState[ds.tableCursor].CVV)
-	m.cardsScreen.updateID = ds.cardsState[ds.tableCursor].ID
+	m.cardsScreen.createMode = true
+	m.cardsScreen.inputs[cardNumber].SetValue("")
+	m.cardsScreen.inputs[expiryDate].SetValue("")
+	m.cardsScreen.inputs[cardHolder].SetValue("")
+	m.cardsScreen.inputs[cvv].SetValue("")
+	m.cardsScreen.updateID = ""
 	m.state = CardForm
 }
 
@@ -600,7 +448,7 @@ func (ds *DashboardScreen) loadActual(m *Model) {
 func (ds *DashboardScreen) View(m *Model) string {
 	var menu string
 	for i, choice := range ds.menu {
-		if i == ds.cursor {
+		if i == int(ds.cursor) {
 			menu += activeMenu.Render("> "+choice) + "\n"
 		} else {
 			menu += inactiveMenu.Render(choice) + "\n"
