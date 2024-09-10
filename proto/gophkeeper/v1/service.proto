@@ -112,10 +112,10 @@ message GetCardsRequest {
 message GetCardsResponse {
   message Card {
     string id = 1 [ (buf.validate.field).string.uuid = true ];
-    string number = 2;
-    string expiration_date = 3;
-    string holder_name = 4;
-    string cvv = 5;
+    string number = 2 [ (buf.validate.field).string.len = 16 ];
+    string expiration_date = 3 [ (buf.validate.field).string.len = 5 ];
+    string holder_name = 4 [ (buf.validate.field).string.min_len = 1 ];
+    string cvv = 5  [ (buf.validate.field).string.len = 3 ];
     string uploaded_at = 6;
   }
   repeated Card cards = 1;
