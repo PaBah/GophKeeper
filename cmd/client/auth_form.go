@@ -88,7 +88,10 @@ func (form *AuthForm) Update(m *Model, msg tea.Msg) (*Model, tea.Cmd) {
 								if m.dashboardScreen.cursor == cards {
 									m.dashboardScreen.updateMsg = "GophKeeper: cards changed, shift → to refresh"
 								}
-
+							case files:
+								if m.dashboardScreen.cursor == files {
+									m.dashboardScreen.updateMsg = "GophKeeper: files changed, shift → to refresh"
+								}
 							}
 						}
 					}()

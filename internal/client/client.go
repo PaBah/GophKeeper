@@ -164,7 +164,7 @@ func (c *ClientService) GetCards(ctx context.Context) (cards []models.Card, err 
 func (c *ClientService) GetFiles(ctx context.Context) (files []models.File, err error) {
 	resp, err := c.client.GetFiles(c.getCtx(ctx, c.token), &pb.GetFilesRequest{})
 	if err != nil {
-		err = fmt.Errorf("GetCards: %w", err)
+		err = fmt.Errorf("GetFiles: %w", err)
 		return
 	}
 	for _, card := range resp.Files {
@@ -175,6 +175,18 @@ func (c *ClientService) GetFiles(ctx context.Context) (files []models.File, err 
 			UploadedAt: uploadedAt,
 		})
 	}
+	return
+}
+
+func (c *ClientService) DeleteFile(ctx context.Context, name string) (err error) {
+	_, err = c.client.DeleteFile(c.getCtx(ctx, c.token), &pb.DeleteFileRequest{
+		Name: name,
+	})
+
+	if err != nil {
+		err = fmt.Errorf("DeleteFile: %w", err)
+	}
+
 	return
 }
 
@@ -209,6 +221,7 @@ func (c *ClientService) DeleteCard(ctx context.Context, cardID string) (err erro
 
 	return
 }
+
 func (c *ClientService) UploadFile(ctx context.Context, filePath string) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -250,6 +263,38 @@ func (c *ClientService) UploadFile(ctx context.Context, filePath string) {
 	}
 	log.Printf("Response from server: %s", resp.Message)
 }
+
+func (c *ClientService) DownloadsFile(ctx context.Context, name string) {
+	req := &pb.DownloadFileRequest{Name: name}
+
+	stream, err := c.client.DownloadFile(c.getCtx(ctx, c.token), req)
+	if err != nil {
+		log.Fatalf("error downloading file: %v", err)
+	}
+
+	localFile, err := os.Create(name)
+	if err != nil {
+		log.Fatalf("could not create local file: %v", err)
+	}
+	defer localFile.Close()
+
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("error receiving chunk: %v", err)
+		}
+
+		if _, err := localFile.Write(resp.Data); err != nil {
+			log.Fatalf("error writing to local file: %v", err)
+		}
+	}
+
+	log.Println("File downloaded successfully.")
+}
+
 func (c *ClientService) SubscribeToChanges(ctx context.Context) (grpc.ServerStreamingClient[pb.SubscribeToChangesResponse], error) {
 	return c.client.SubscribeToChanges(c.getCtx(ctx, c.token), &pb.SubscribeToChangesRequest{})
 }

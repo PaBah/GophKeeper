@@ -20,10 +20,11 @@ func (fp *FilePicker) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	fp.filepicker, cmd = fp.filepicker.Update(msg)
 
-	// Did the user select a file?
 	if didSelect, path := fp.filepicker.DidSelectFile(msg); didSelect {
 		log.Println("Selected file:", path)
 		m.clientService.UploadFile(context.Background(), path)
+		m.dashboardScreen.loadActual(m)
+		m.dashboardScreen.content = m.dashboardScreen.drawContent(m)
 		m.state = Dashboard
 	}
 
@@ -43,7 +44,7 @@ func (fp *FilePicker) View(m *Model) string {
 func NewFilePicker() *FilePicker {
 	fp := filepicker.New()
 	fp.FileAllowed = true
-	fp.Height = 30
+	fp.Height = 20
 	qwe, _ := os.UserHomeDir()
 	log.Println("qwe", qwe)
 	fp.CurrentDirectory = qwe

@@ -150,12 +150,12 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	m.spinner, cmd = m.spinner.Update(message)
 	cmds = append(cmds, cmd)
-	if m.state == FileLoad {
-		_, cmd = m.filesScreen.Update(&m, message)
-		cmds = append(cmds, cmd)
-	} else {
-		cmds = append(cmds, m.filesScreen.filepicker.Init())
-	}
+	//if m.state == FileLoad {
+	//	_, cmd = m.filesScreen.Update(&m, message)
+	//	cmds = append(cmds, cmd)
+	//} else {
+	//	cmds = append(cmds, m.filesScreen.filepicker.Init())
+	//}
 	switch m.state {
 	case Initial:
 		var cmd tea.Cmd
@@ -181,10 +181,10 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		_, cmd = m.cardsScreen.Update(&m, message)
 		cmds = append(cmds, cmd)
-		//case FileLoad:
-		//	var cmd tea.Cmd
-		//	_, cmd = m.filesScreen.Update(&m, message)
-		//	cmds = append(cmds, cmd)
+	case FileLoad:
+		var cmd tea.Cmd
+		_, cmd = m.filesScreen.Update(&m, message)
+		cmds = append(cmds, cmd)
 	}
 	return m, tea.Batch(cmds...)
 }
@@ -235,7 +235,6 @@ func (m Model) View() string {
 		lines := []string{"shft+tab back"}
 		footer = strings.Join(lines, helpSeparator) + " "
 	case FileLoad:
-		//return m.filesScreen.View(&m)
 		body = m.filesScreen.View(&m)
 		lines := []string{"shft+tab back"}
 		footer = strings.Join(lines, helpSeparator) + " "

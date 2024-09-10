@@ -26,6 +26,7 @@ service GophKeeperService {
 
   rpc SubscribeToChanges(SubscribeToChangesRequest) returns (stream SubscribeToChangesResponse);
   rpc UploadFile(stream UploadFileRequest) returns (stream UploadFileResponse);
+  rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
 }
 
 message SignUpRequest {
@@ -176,4 +177,12 @@ message DeleteFileRequest {
 }
 
 message DeleteFileResponse {
+}
+
+message DownloadFileRequest {
+  string name = 1;
+}
+
+message DownloadFileResponse {
+  bytes data = 1;
 }

@@ -64,3 +64,35 @@
 2024/09/09 00:01:05 qwe /Users/paulbahush
 2024/09/09 00:01:37 Selected file: /Users/paulbahush/Downloads/DSCF2881.JPG
 2024/09/09 00:01:37 Response from server: File uploaded successfully
+2024/09/09 10:17:29 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/10 20:35:43 qwe /Users/paulbahush
+2024/09/10 20:52:01 qwe /Users/paulbahush
+2024/09/10 20:53:24 qwe /Users/paulbahush
+2024/09/10 20:54:46 Selected file: /Users/paulbahush/Downloads/mems/IMG_3522.JPG
+2024/09/10 20:54:46 Response from server: File uploaded successfully
+2024/09/10 20:55:53 qwe /Users/paulbahush
+2024/09/10 20:55:59 qwe /Users/paulbahush
+2024/09/10 20:56:16 Selected file: /Users/paulbahush/Downloads/mems/IMG_3522.JPG
+2024/09/10 20:56:16 Response from server: File uploaded successfully
+2024/09/10 21:00:04 qwe /Users/paulbahush
+2024/09/10 21:00:31 Selected file: /Users/paulbahush/Downloads/mems/IMG_3522.JPG
+2024/09/10 21:00:31 Response from server: File uploaded successfully
+2024/09/10 21:05:57 qwe /Users/paulbahush
+2024/09/10 21:07:12 qwe /Users/paulbahush
+2024/09/10 21:07:28 Selected file: /Users/paulbahush/Downloads/1.rar
+2024/09/10 21:07:34 Response from server: File uploaded successfully
+2024/09/10 21:09:05 qwe /Users/paulbahush
+2024/09/10 21:09:38 Selected file: /Users/paulbahush/Downloads/1.rar
+2024/09/10 21:09:44 Response from server: File uploaded successfully
+2024/09/10 21:30:18 qwe /Users/paulbahush
+2024/09/10 21:30:34 File downloaded successfully.
+2024/09/10 21:31:23 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/10 21:36:42 qwe /Users/paulbahush
+2024/09/10 21:37:06 qwe /Users/paulbahush
+2024/09/10 21:37:46 Selected file: /Users/paulbahush/Downloads/AgfknlLZARY.jpg
+2024/09/10 21:37:46 Response from server: File uploaded successfully
+2024/09/10 21:39:08 Selected file: /Users/paulbahush/Downloads/IMG_4213-Enhanced-NR.jpg
+2024/09/10 21:39:08 Response from server: File uploaded successfully
+2024/09/10 21:40:00 File downloaded successfully.
+2024/09/10 21:40:18 rpc error: code = Unavailable desc = error reading from server: EOF
+2024/09/10 21:40:18 rpc error: code = Unavailable desc = error reading from server: EOF

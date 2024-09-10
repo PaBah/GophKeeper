@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"sync"
@@ -275,30 +276,32 @@ func (s *GrpcServer) SendNotifications(ctx context.Context, resource int, ID str
 	s.rwMutex.Unlock()
 }
 
-func (s *GrpcServer) UploadFile(stream pb.GophKeeperService_UploadFileServer) error {
+func (s *GrpcServer) UploadFile(stream pb.GophKeeperService_UploadFileServer) (err error) {
 	var objectName string
 	var fileData []byte
 	userID, _ := stream.Context().Value(config.USERIDCONTEXTKEY).(string)
 
 	for {
-		req, err := stream.Recv()
+		var in *pb.UploadFileRequest
+		in, err = stream.Recv()
 		if err == io.EOF {
 			reader := io.NopCloser(bytes.NewReader(fileData))
-			_, err := s.minioClient.PutObject(context.Background(), userID, objectName, reader, int64(len(fileData)), minio.PutObjectOptions{})
+			_, err = s.minioClient.PutObject(context.Background(), userID, objectName, reader, int64(len(fileData)), minio.PutObjectOptions{})
 			if err != nil {
-				return err
+				return
 			}
+			s.SendNotifications(stream.Context(), 2, objectName)
 			return stream.Send(&pb.UploadFileResponse{
 				Message: "File uploaded successfully",
 				Success: true,
 			})
 		}
 		if err != nil {
-			return err
+			return
 		}
 
-		fileData = append(fileData, req.Data...)
-		objectName = req.Filename
+		fileData = append(fileData, in.Data...)
+		objectName = in.Filename
 	}
 }
 
@@ -314,6 +317,42 @@ func (s *GrpcServer) GetFiles(ctx context.Context, in *pb.GetFilesRequest) (*pb.
 		})
 	}
 	return response, nil
+}
+
+func (s *GrpcServer) DeleteFile(ctx context.Context, in *pb.DeleteFileRequest) (*pb.DeleteFileResponse, error) {
+	response := &pb.DeleteFileResponse{}
+
+	err := s.minioClient.RemoveObject(ctx, ctx.Value(config.USERIDCONTEXTKEY).(string), in.Name, minio.RemoveObjectOptions{})
+	s.SendNotifications(ctx, 2, in.Name)
+	return response, err
+}
+
+func (s *GrpcServer) DownloadFile(in *pb.DownloadFileRequest, stream pb.GophKeeperService_DownloadFileServer) error {
+	object, err := s.minioClient.GetObject(
+		context.Background(), stream.Context().Value(config.USERIDCONTEXTKEY).(string),
+		in.Name, minio.GetObjectOptions{},
+	)
+	if err != nil {
+		return status.Errorf(codes.Internal, err.Error())
+	}
+	defer object.Close()
+
+	buffer := make([]byte, 1024)
+	for {
+		n, err := object.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return status.Errorf(codes.Internal, err.Error())
+		}
+
+		if err := stream.Send(&pb.DownloadFileResponse{Data: buffer[:n]}); err != nil {
+			return status.Errorf(codes.Internal, fmt.Errorf("failed to send chunk: %v", err).Error())
+		}
+	}
+
+	return nil
 }
 
 // NewGrpcServer - creates new gRPC server instance

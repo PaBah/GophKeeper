@@ -248,6 +248,7 @@ func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = CardForm
 			case files:
 				m.state = FileLoad
+				return m, m.filesScreen.filepicker.Init()
 			default:
 				return m, nil
 			}
@@ -268,6 +269,8 @@ func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cardsScreen.inputs[cvv].SetValue(ds.cardsState[ds.tableCursor].CVV)
 				m.cardsScreen.updateID = ds.cardsState[ds.tableCursor].ID
 				m.state = CardForm
+			case files:
+				m.clientService.DownloadsFile(context.Background(), ds.filesState[ds.tableCursor].Name)
 			default:
 				return m, nil
 			}
@@ -280,6 +283,11 @@ func (ds *DashboardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 				ds.content = ds.drawContent(m)
 			case cards:
 				_ = m.clientService.DeleteCard(context.Background(), ds.cardsState[ds.tableCursor].ID)
+				ds.tableCursor = max(ds.tableCursor-1, 0)
+				ds.loadActual(m)
+				ds.content = ds.drawContent(m)
+			case files:
+				_ = m.clientService.DeleteFile(context.Background(), ds.filesState[ds.tableCursor].Name)
 				ds.tableCursor = max(ds.tableCursor-1, 0)
 				ds.loadActual(m)
 				ds.content = ds.drawContent(m)
