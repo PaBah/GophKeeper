@@ -34,7 +34,7 @@ jobs:
             -X "github.com/PaBah/GophKeeper/internal/version.BuildVersion=${{env.RELEASE_TAG}}"
             -X "github.com/PaBah/GophKeeper/internal/version.BuildDate=${{env.RELEASE_TIME}}"
             -X "github.com/PaBah/GophKeeper/internal/version.BuildCommit=${{env.RELEASE_COMMIT}}"
-          project_path: server/cmd
+          project_path: server
           asset_name: "${{ env.REPOSITORY_NAME }}-${{ env.RELEASE_TAG }}-${{ matrix.goos }}-${{ matrix.goarch }}"
           md5sum: false
       - uses: wangyoucao577/go-release-action@v1.51
