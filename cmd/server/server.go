@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"sync"
@@ -20,14 +19,12 @@ import (
 	"github.com/PaBah/GophKeeper/internal/storage"
 	"github.com/PaBah/GophKeeper/internal/utils"
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type GrpcServer struct {
 	pb.UnimplementedGophKeeperServiceServer
-	logger      *zap.Logger
 	config      *config.ServerConfig
 	storage     storage.Repository
 	minioClient *minio.Client
@@ -69,7 +66,7 @@ func (s *GrpcServer) SignUp(ctx context.Context, in *pb.SignUpRequest) (*pb.Sign
 	sessionID := uuid.New().String()
 	JWTToken, err := auth.BuildJWTString(createdUser.ID, sessionID, s.config.Secret)
 	if err != nil {
-		return response, status.Errorf(codes.Unauthenticated, err.Error())
+		return response, status.Errorf(codes.Internal, "JWT token can not be built")
 	}
 
 	err = s.minioClient.MakeBucket(context.Background(), createdUser.ID, minio.MakeBucketOptions{})
@@ -92,9 +89,6 @@ func (s *GrpcServer) CreateCredentials(ctx context.Context, in *pb.CreateCredent
 		return response, status.Errorf(codes.InvalidArgument, "User already created credentials with such service name and identity")
 	}
 
-	if err != nil {
-		return response, status.Errorf(codes.Unauthenticated, err.Error())
-	}
 	s.SendNotifications(ctx, 0, createdCredentials.ID)
 	response.Id = createdCredentials.ID
 	response.ServiceName = createdCredentials.ServiceName
@@ -108,8 +102,9 @@ func (s *GrpcServer) GetCredentials(ctx context.Context, in *pb.GetCredentialsRe
 	response := &pb.GetCredentialsResponse{}
 
 	credentials, err := s.storage.GetCredentials(ctx)
+
 	if err != nil {
-		return response, status.Errorf(codes.InvalidArgument, err.Error())
+		return response, status.Errorf(codes.InvalidArgument, "credentials can not be retrieved")
 	}
 
 	for _, credentialSet := range credentials {
@@ -136,7 +131,7 @@ func (s *GrpcServer) UpdateCredentials(ctx context.Context, in *pb.UpdateCredent
 	})
 
 	if err != nil {
-		return response, status.Errorf(codes.InvalidArgument, err.Error())
+		return response, status.Errorf(codes.InvalidArgument, "credentials can not be updated")
 	}
 	s.SendNotifications(ctx, 0, createdCredentials.ID)
 	response.Id = createdCredentials.ID
@@ -153,7 +148,7 @@ func (s *GrpcServer) DeleteCredentials(ctx context.Context, in *pb.DeleteCredent
 	err := s.storage.DeleteCredentials(ctx, in.Id)
 
 	if err != nil {
-		return response, status.Errorf(codes.InvalidArgument, err.Error())
+		return response, status.Errorf(codes.InvalidArgument, "credentials can not be deleted")
 	}
 	s.SendNotifications(ctx, 0, in.Id)
 	return response, nil
@@ -171,7 +166,7 @@ func (s *GrpcServer) CreateCard(ctx context.Context, in *pb.CreateCardRequest) (
 	createdCard, err := s.storage.CreateCard(ctx, card)
 
 	if err != nil {
-		return response, status.Errorf(codes.InvalidArgument, err.Error())
+		return response, status.Errorf(codes.InvalidArgument, "card can not be created")
 	}
 	s.SendNotifications(ctx, 1, createdCard.ID)
 	response.LastDigits = createdCard.Number[12:]
@@ -187,7 +182,7 @@ func (s *GrpcServer) GetCards(ctx context.Context, in *pb.GetCardsRequest) (*pb.
 
 	cards, err := s.storage.GetCards(ctx)
 	if err != nil {
-		return response, status.Errorf(codes.InvalidArgument, err.Error())
+		return response, status.Errorf(codes.InvalidArgument, "cards can not be retrieved")
 	}
 
 	for _, card := range cards {
@@ -220,7 +215,7 @@ func (s *GrpcServer) UpdateCard(ctx context.Context, in *pb.UpdateCardRequest) (
 	})
 
 	if err != nil {
-		return response, status.Errorf(codes.InvalidArgument, err.Error())
+		return response, status.Errorf(codes.InvalidArgument, "card can not be updated")
 	}
 	s.SendNotifications(ctx, 1, card.ID)
 	response.LastDigits = card.Number[12:]
@@ -237,7 +232,7 @@ func (s *GrpcServer) DeleteCard(ctx context.Context, in *pb.DeleteCardRequest) (
 	err := s.storage.DeleteCard(ctx, in.Id)
 
 	if err != nil {
-		return response, status.Errorf(codes.InvalidArgument, err.Error())
+		return response, status.Errorf(codes.InvalidArgument, "card can not be deleted")
 	}
 	s.SendNotifications(ctx, 1, in.Id)
 	return response, nil
@@ -267,7 +262,7 @@ func (s *GrpcServer) SendNotifications(ctx context.Context, resource int, ID str
 	s.rwMutex.Lock()
 	for session, client := range s.syncClients[userID] {
 		if session != sessionID {
-			client.Send(&pb.SubscribeToChangesResponse{
+			_ = client.Send(&pb.SubscribeToChangesResponse{
 				Source: int32(resource),
 				Id:     ID,
 			})
@@ -333,7 +328,7 @@ func (s *GrpcServer) DownloadFile(in *pb.DownloadFileRequest, stream pb.GophKeep
 		in.Name, minio.GetObjectOptions{},
 	)
 	if err != nil {
-		return status.Errorf(codes.Internal, err.Error())
+		return status.Errorf(codes.Internal, "failed to open object: %v", err)
 	}
 	defer object.Close()
 
@@ -344,11 +339,11 @@ func (s *GrpcServer) DownloadFile(in *pb.DownloadFileRequest, stream pb.GophKeep
 			break
 		}
 		if err != nil {
-			return status.Errorf(codes.Internal, err.Error())
+			return status.Errorf(codes.Internal, "block can not be read: %v", err)
 		}
 
 		if err := stream.Send(&pb.DownloadFileResponse{Data: buffer[:n]}); err != nil {
-			return status.Errorf(codes.Internal, fmt.Errorf("failed to send chunk: %v", err).Error())
+			return status.Errorf(codes.Internal, "failed to send chunk: %v", err)
 		}
 	}
 

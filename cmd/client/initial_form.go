@@ -11,9 +11,9 @@ type InitialForm struct {
 }
 
 func (form *InitialForm) Update(model *Model, message tea.Msg) (*Model, tea.Cmd) {
-	switch message.(type) {
+	switch message := message.(type) {
 	case tea.KeyMsg:
-		switch message.(tea.KeyMsg).String() {
+		switch message.String() {
 		case "down":
 			form.SelectedOption = (form.SelectedOption + 1) % 2
 		case "up":

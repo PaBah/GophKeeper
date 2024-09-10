@@ -30,16 +30,15 @@ type Model struct {
 }
 
 var (
-	normalFg      = lipgloss.AdaptiveColor{Light: "235", Dark: "252"}
-	indigo        = lipgloss.AdaptiveColor{Light: "#5A56E0", Dark: "#7571F9"}
-	cream         = lipgloss.AdaptiveColor{Light: "#FFFDF5", Dark: "#FFFDF5"}
-	fuchsia       = lipgloss.Color("#F780E2")
-	help          = lipgloss.Color("240")
-	green         = lipgloss.AdaptiveColor{Light: "#02BA84", Dark: "#02BF87"}
-	red           = lipgloss.AdaptiveColor{Light: "#FF4672", Dark: "#ED567A"}
-	blurBg        = lipgloss.Color("235")
-	blurText      = lipgloss.Color("240")
-	helpSeparator = " · "
+	normalFg = lipgloss.AdaptiveColor{Light: "235", Dark: "252"}
+	indigo   = lipgloss.AdaptiveColor{Light: "#5A56E0", Dark: "#7571F9"}
+	cream    = lipgloss.AdaptiveColor{Light: "#FFFDF5", Dark: "#FFFDF5"}
+	fuchsia  = lipgloss.Color("#F780E2")
+	help     = lipgloss.Color("240")
+	green    = lipgloss.AdaptiveColor{Light: "#02BA84", Dark: "#02BF87"}
+	red      = lipgloss.AdaptiveColor{Light: "#FF4672", Dark: "#ED567A"}
+	blurBg   = lipgloss.Color("235")
+	blurText = lipgloss.Color("240")
 
 	titleStyle = lipgloss.NewStyle().
 			Foreground(normalFg).
@@ -120,11 +119,11 @@ func NewModel(state State) Model {
 }
 
 func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
-	switch message.(type) {
+	switch message := message.(type) {
 	case tea.WindowSizeMsg:
-		m.width = message.(tea.WindowSizeMsg).Width
+		m.width = message.Width
 	case tea.KeyMsg:
-		switch message.(tea.KeyMsg).Type {
+		switch message.Type {
 		case tea.KeyEsc, tea.KeyCtrlC:
 			return m, tea.Quit
 		case tea.KeyShiftTab:

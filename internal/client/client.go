@@ -316,7 +316,7 @@ func (c *ClientService) IsAvailable() bool {
 // TryToConnect attempts to establish a connection with the gRPC server.
 // It sets up the connection and checks the server's availability.
 func (c *ClientService) TryToConnect() bool {
-	conn, err := grpc.Dial(c.serverAddress,
+	conn, err := grpc.NewClient(c.serverAddress,
 		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})))
 	if err != nil {
 		logger.Log().Error("failed connect to server", zap.Error(err))

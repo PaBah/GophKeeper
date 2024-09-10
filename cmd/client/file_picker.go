@@ -13,7 +13,6 @@ import (
 type FilePicker struct {
 	filepicker filepicker.Model
 	quitting   bool
-	err        error
 }
 
 func (fp *FilePicker) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
