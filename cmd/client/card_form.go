@@ -58,73 +58,100 @@ func NewCardScreen() *CardScreen {
 func (form *CardScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
-			if msg.String() == "enter" && form.focused == totalCardFields {
-				m.err = form.validateInputs()
-				if m.err == nil {
-					if form.createMode {
-						m.err = m.clientService.CreateCard(
-							context.Background(),
-							strings.ReplaceAll(form.inputs[cardNumber].Value(), " ", ""),
-							form.inputs[expiryDate].Value(),
-							form.inputs[cardHolder].Value(),
-							form.inputs[cvv].Value(),
-						)
-					} else {
-						_, m.err = m.clientService.UpdateCards(
-							context.Background(),
-							models.Card{
-								ID:             form.updateID,
-								Number:         strings.ReplaceAll(form.inputs[cardNumber].Value(), " ", ""),
-								ExpirationDate: form.inputs[expiryDate].Value(),
-								HolderName:     form.inputs[cardHolder].Value(),
-								CVV:            form.inputs[cvv].Value(),
-							},
-						)
-					}
-				}
-				if m.err == nil {
-					m.dashboardScreen.loadActual(m)
-					m.dashboardScreen.content = m.dashboardScreen.drawContent(m)
-					m.state = Dashboard
-				}
-			}
-			if form.focused < totalCardFields {
-				form.inputs[form.focused].Blur()
-				form.focused++
-				if len(form.inputs)-1 >= form.focused {
-					form.inputs[form.focused].Focus()
-				}
-			}
-		case "down":
-			if form.focused < totalCardFields {
-				form.inputs[form.focused].Blur()
-				form.focused++
-				if len(form.inputs)-1 >= form.focused {
-					form.inputs[form.focused].Focus()
-				}
-			}
-		case "up":
-			if form.focused > 0 {
-				if len(form.inputs)-1 >= form.focused {
-					form.inputs[form.focused].Blur()
-				}
-				form.focused--
-				form.inputs[form.focused].Focus()
-			}
-		}
+		return form.handleKeyMsg(m, msg)
+	default:
+		return m, nil
+	}
+}
 
-		var cmds []tea.Cmd
-		for i := range form.inputs {
-			var cmd tea.Cmd
-			form.inputs[i], cmd = form.inputs[i].Update(msg)
-			cmds = append(cmds, cmd)
+func (form *CardScreen) handleKeyMsg(m *Model, msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "enter":
+		return form.handleEnterKey(m)
+	case "down":
+		return form.handleDownKey(m)
+	case "up":
+		return form.handleUpKey(m)
+	}
+	return form.updateInputs(m, msg)
+}
+
+func (form *CardScreen) handleEnterKey(m *Model) (tea.Model, tea.Cmd) {
+	if form.focused == totalCardFields {
+		m.err = form.validateAndSubmit(m)
+		if m.err == nil {
+			m.dashboardScreen.loadActual(m)
+			m.dashboardScreen.content = m.dashboardScreen.drawContent(m)
+			m.state = Dashboard
 		}
-		return m, tea.Batch(cmds...)
+	}
+	form.moveFocusForward()
+	return form.updateInputs(m, tea.KeyMsg{})
+}
+
+func (form *CardScreen) validateAndSubmit(m *Model) error {
+	m.err = form.validateInputs()
+	if m.err != nil {
+		return m.err
 	}
 
-	return m, nil
+	if form.createMode {
+		return m.clientService.CreateCard(
+			context.Background(),
+			strings.ReplaceAll(form.inputs[cardNumber].Value(), " ", ""),
+			form.inputs[expiryDate].Value(),
+			form.inputs[cardHolder].Value(),
+			form.inputs[cvv].Value(),
+		)
+	}
+
+	_, err := m.clientService.UpdateCards(
+		context.Background(),
+		models.Card{
+			ID:             form.updateID,
+			Number:         strings.ReplaceAll(form.inputs[cardNumber].Value(), " ", ""),
+			ExpirationDate: form.inputs[expiryDate].Value(),
+			HolderName:     form.inputs[cardHolder].Value(),
+			CVV:            form.inputs[cvv].Value(),
+		},
+	)
+	return err
+}
+
+func (form *CardScreen) moveFocusForward() {
+	if form.focused < totalCardFields {
+		form.inputs[form.focused].Blur()
+		form.focused++
+		if len(form.inputs)-1 >= form.focused {
+			form.inputs[form.focused].Focus()
+		}
+	}
+}
+
+func (form *CardScreen) handleDownKey(m *Model) (tea.Model, tea.Cmd) {
+	form.moveFocusForward()
+	return form.updateInputs(m, tea.KeyMsg{})
+}
+
+func (form *CardScreen) handleUpKey(m *Model) (tea.Model, tea.Cmd) {
+	if form.focused > 0 {
+		if len(form.inputs)-1 >= form.focused {
+			form.inputs[form.focused].Blur()
+		}
+		form.focused--
+		form.inputs[form.focused].Focus()
+	}
+	return form.updateInputs(m, tea.KeyMsg{})
+}
+
+func (form *CardScreen) updateInputs(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+	for i := range form.inputs {
+		var cmd tea.Cmd
+		form.inputs[i], cmd = form.inputs[i].Update(msg)
+		cmds = append(cmds, cmd)
+	}
+	return m, tea.Batch(cmds...)
 }
 
 // View отвечает за рендеринг интерфейса

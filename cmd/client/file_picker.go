@@ -45,9 +45,8 @@ func NewFilePicker() *FilePicker {
 	fp := filepicker.New()
 	fp.FileAllowed = true
 	fp.Height = 20
-	qwe, _ := os.UserHomeDir()
-	log.Println("qwe", qwe)
-	fp.CurrentDirectory = qwe
+	fp.CurrentDirectory, _ = os.UserHomeDir()
+
 	return &FilePicker{
 		filepicker: fp,
 	}

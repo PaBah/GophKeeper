@@ -150,12 +150,7 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	m.spinner, cmd = m.spinner.Update(message)
 	cmds = append(cmds, cmd)
-	//if m.state == FileLoad {
-	//	_, cmd = m.filesScreen.Update(&m, message)
-	//	cmds = append(cmds, cmd)
-	//} else {
-	//	cmds = append(cmds, m.filesScreen.filepicker.Init())
-	//}
+
 	switch m.state {
 	case Initial:
 		var cmd tea.Cmd
@@ -190,59 +185,69 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	// 1. Определение заголовка
 	header := m.appBoundaryView("GophKeeper")
 	if m.err != nil {
 		header = m.appErrorBoundaryView(m.err.Error())
 	}
-	body := ""
-	footer := ""
+
+	// 2. Определение тела и футера в зависимости от состояния
+	var body, footer string
 	switch m.state {
 	case Initial:
 		body = m.initialScreen.View(m)
-	case SignIn:
-		body = m.signInScreen.View(&m)
-		footer = strings.Join([]string{"shft+tab back"}, helpSeparator) + " "
-	case SignUp:
-		body = m.signUpScreen.View(&m)
-		footer = strings.Join([]string{"shft+tab back"}, helpSeparator) + " "
+	case SignIn, SignUp:
+		body = m.signInOrSignUpView() // Вынесено в отдельный метод
+		footer = "shft+tab back "     // Общий футер для SignIn и SignUp
 	case Dashboard:
-		body = m.dashboardScreen.View(&m)
-		lines := []string{}
-		switch m.dashboardScreen.cursor {
-		case credentials:
-			lines = []string{
-				"shft+tab back", "← menu", "F1 new", "F2 update", "F3 delete", "F4 copy identity", "F5 copy password",
-			}
-		case cards:
-			lines = []string{
-				"shft+tab back", "← menu", "F1 new", "F2 update", "F3 delete", "F4 copy number", "F5 copy expiration", "F6 copy holder", "F7 copy CVV",
-			}
-		case files:
-			lines = []string{
-				"shft+tab back", "← menu", "F1 upload", "F2 download", "F3 delete",
-			}
-		}
-		if !m.dashboardScreen.tableNavigation {
-			lines = []string{"shft+tab back"}
-		}
-		footer = strings.Join(lines, helpSeparator) + " "
+		body, footer = m.dashboardView() // Вынесено в отдельный метод
+	case CredentialsForm, CardForm, FileLoad:
+		body, footer = m.formView() // Объединено в один метод для форм
+	default:
+		return m.styles.Base.Render("Oh-oh, something crashed... press ctrl+c to quit")
+	}
+
+	// 3. Добавление футера
+	footer = m.appFooterView(footer)
+
+	// 4. Финальное рендеринг
+	return m.styles.Base.Render(header + "\n" + body + "\n\n" + footer)
+}
+
+// Пример методов для упрощения
+func (m Model) signInOrSignUpView() string {
+	if m.state == SignIn {
+		return m.signInScreen.View(&m)
+	}
+	return m.signUpScreen.View(&m)
+}
+
+func (m Model) dashboardView() (string, string) {
+	body := m.dashboardScreen.View(&m)
+	lines := []string{}
+	switch m.dashboardScreen.cursor {
+	case credentials:
+		lines = []string{"shft+tab back", "← menu", "F1 new", "F2 update", "F3 delete", "F4 copy identity", "F5 copy password"}
+	case cards:
+		lines = []string{"shft+tab back", "← menu", "F1 new", "F2 update", "F3 delete", "F4 copy number", "F5 copy expiration", "F6 copy holder", "F7 copy CVV"}
+	case files:
+		lines = []string{"shft+tab back", "← menu", "F1 upload", "F2 download", "F3 delete"}
+	}
+	footer := strings.Join(lines, " | ") + " "
+	return body, footer
+}
+
+func (m Model) formView() (string, string) {
+	var body string
+	switch m.state {
 	case CredentialsForm:
 		body = m.credentialsScreen.View(&m)
-		lines := []string{"shft+tab back"}
-		footer = strings.Join(lines, helpSeparator) + " "
 	case CardForm:
 		body = m.cardsScreen.View(&m)
-		lines := []string{"shft+tab back"}
-		footer = strings.Join(lines, helpSeparator) + " "
 	case FileLoad:
 		body = m.filesScreen.View(&m)
-		lines := []string{"shft+tab back"}
-		footer = strings.Join(lines, helpSeparator) + " "
-	default:
-		return m.styles.Base.Render(m.spinner.View(), "Oh-oh, something crashed... press ctrl+c to quit")
 	}
-	footer = m.appFooterView(footer)
-	return m.styles.Base.Render(header + "\n" + body + "\n\n" + footer)
+	return body, "shft+tab back "
 }
 
 func (m Model) appBoundaryView(text string) string {
