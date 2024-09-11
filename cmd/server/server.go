@@ -352,9 +352,8 @@ func (s *GrpcServer) DownloadFile(in *pb.DownloadFileRequest, stream pb.GophKeep
 
 // NewGrpcServer - creates new gRPC server instance
 func NewGrpcServer(config *config.ServerConfig, storage storage.Repository) *GrpcServer {
-	// Настраиваем соединение с MinIO
-	minioClient, err := minio.New("127.0.0.1:9000", &minio.Options{
-		Creds:  credentials.NewStaticV4("admin", "password123", ""),
+	minioClient, err := minio.New(config.MinIOAddress, &minio.Options{
+		Creds:  credentials.NewStaticV4(config.MinIOLogin, config.MinIOPassword, ""),
 		Secure: false,
 	})
 	if err != nil {

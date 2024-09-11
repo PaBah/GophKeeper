@@ -16,6 +16,7 @@ require (
 	github.com/jackc/pgx/v5 v5.5.4
 	github.com/minio/minio-go/v7 v7.0.76
 	github.com/stretchr/testify v1.9.0
+	go.uber.org/mock v0.4.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.26.0
 	google.golang.org/grpc v1.65.0

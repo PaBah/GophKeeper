@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"os"
-	"strconv"
 
 	"github.com/PaBah/GophKeeper/internal/config"
 	"github.com/PaBah/GophKeeper/internal/logger"
@@ -24,13 +23,15 @@ func isFlagPassed(name string) bool {
 // ParseFlags - initializer system configuration
 func ParseFlags(options *config.ServerConfig) {
 	var specified bool
-	var logsLevel, databaseDSN, enableHTTPS, gRPCAddress, configFilePath string
+	var logsLevel, databaseDSN, gRPCAddress, configFilePath, minIOAdress, minIOLogin, minIOPassword string
 
 	flag.StringVar(&configFilePath, "c", "", "path to config file")
 	flag.StringVar(&options.GRPCAddress, "g", ":3200", "host:port on which gRPC run")
 	flag.StringVar(&options.DatabaseDSN, "d", "host=localhost user=paulbahush dbname=gophkeeper password=", "database DSN address")
 	flag.StringVar(&options.LogsLevel, "l", "debug", "logs level")
-	flag.BoolVar(&options.EnableHTTPS, "s", true, "enable-https")
+	flag.StringVar(&options.MinIOAddress, "m", "minio:9000", "address of minio")
+	flag.StringVar(&options.MinIOLogin, "k", "admin", "login for minio")
+	flag.StringVar(&options.MinIOPassword, "p", "password123", "password for minio")
 	flag.Parse()
 
 	var fileConfig config.ServerConfig
@@ -48,11 +49,17 @@ func ParseFlags(options *config.ServerConfig) {
 				if !isFlagPassed("d") {
 					options.DatabaseDSN = fileConfig.DatabaseDSN
 				}
-				if !isFlagPassed("s") {
-					options.EnableHTTPS = fileConfig.EnableHTTPS
-				}
 				if !isFlagPassed("g") {
 					options.GRPCAddress = fileConfig.GRPCAddress
+				}
+				if !isFlagPassed("m") {
+					options.MinIOAddress = fileConfig.MinIOAddress
+				}
+				if !isFlagPassed("k") {
+					options.MinIOLogin = fileConfig.MinIOLogin
+				}
+				if !isFlagPassed("p") {
+					options.MinIOPassword = fileConfig.MinIOPassword
 				}
 			}
 		}
@@ -73,8 +80,18 @@ func ParseFlags(options *config.ServerConfig) {
 		options.GRPCAddress = gRPCAddress
 	}
 
-	enableHTTPS, specified = os.LookupEnv("ENABLE_HTTPS")
+	minIOAdress, specified = os.LookupEnv("MINIO_ADDRESS")
 	if specified {
-		options.EnableHTTPS, _ = strconv.ParseBool(enableHTTPS)
+		options.MinIOAddress = minIOAdress
+	}
+
+	minIOLogin, specified = os.LookupEnv("MINIO_LOGIN")
+	if specified {
+		options.MinIOLogin = minIOLogin
+	}
+
+	minIOPassword, specified = os.LookupEnv("MINIO_PASSWORD")
+	if specified {
+		options.MinIOPassword = minIOPassword
 	}
 }
