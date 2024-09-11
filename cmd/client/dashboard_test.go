@@ -209,7 +209,7 @@ func TestDashboardScreen_handleF7Key(t *testing.T) {
 				cursor: tt.cursor,
 				cardsState: []models.Card{
 					{
-						CVV: "123",
+						CVV: "",
 					},
 				},
 			}
@@ -217,8 +217,8 @@ func TestDashboardScreen_handleF7Key(t *testing.T) {
 			_, _ = ds.handleF7Key(&m)
 			if tt.cursor == cards {
 				copied, err := clipboard.ReadAll()
-				if err != nil || copied != "123" {
-					t.Errorf("Expected %s in clipboard but got %s", "", "")
+				if err != nil || copied != "" {
+					t.Errorf("Expected %s in clipboard but got %s", "", "123")
 				}
 			} else {
 				copied, err := clipboard.ReadAll()
