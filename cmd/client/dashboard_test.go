@@ -218,7 +218,7 @@ func TestDashboardScreen_handleF7Key(t *testing.T) {
 			if tt.cursor == cards {
 				copied, err := clipboard.ReadAll()
 				if err != nil || copied != "123" {
-					t.Errorf("Expected %s in clipboard but got %s", "", copied)
+					t.Errorf("Expected %s in clipboard but got %s", "", "")
 				}
 			} else {
 				copied, err := clipboard.ReadAll()
