@@ -26,7 +26,7 @@ func TestParseFlags(t *testing.T) {
 				os.Setenv("GRPC_ADDRESS", tt.envValues[0])
 				os.Setenv("DATABASE_DSN", tt.envValues[1])
 				os.Setenv("LOG_LEVEL", tt.envValues[2])
-				os.Setenv("MINIO_ADDRESS", tt.envValues[4])
+				os.Setenv("MINIO_ADDRESS", tt.envValues[3])
 				os.Setenv("MINIO_LOGIN", tt.envValues[4])
 				os.Setenv("MINIO_PASSWORD", tt.envValues[5])
 			}

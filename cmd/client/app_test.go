@@ -20,7 +20,7 @@ func TestModel_Init(t *testing.T) {
 		{
 			name: "InitTest",
 			m:    NewModel(Initial),
-			want: tea.Batch(textinput.Blink, spinner.Tick, nil),
+			want: tea.Batch(textinput.Blink, spinner.New().Tick, nil),
 		},
 	}
 

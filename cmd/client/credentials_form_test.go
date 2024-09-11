@@ -16,8 +16,8 @@ func TestCredentialsFormUpdate(t *testing.T) {
 		focused    credentialsFormInput
 		title      string
 	}{
-		{name: "Case 1", inputs: []textinput.Model{textinput.NewModel()}, updateID: "1234", createMode: false, focused: 0, title: "Test Case 1"},
-		{name: "Case 2", inputs: []textinput.Model{textinput.NewModel(), textinput.NewModel()}, updateID: "5678", createMode: true, focused: 1, title: "Test Case 2"},
+		{name: "Case 1", inputs: []textinput.Model{textinput.New()}, updateID: "1234", createMode: false, focused: 0, title: "Test Case 1"},
+		{name: "Case 2", inputs: []textinput.Model{textinput.New(), textinput.New()}, updateID: "5678", createMode: true, focused: 1, title: "Test Case 2"},
 	}
 
 	for _, table := range tables {
