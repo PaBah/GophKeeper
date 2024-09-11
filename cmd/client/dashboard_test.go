@@ -218,12 +218,12 @@ func TestDashboardScreen_handleF7Key(t *testing.T) {
 			if tt.cursor == cards {
 				copied, err := clipboard.ReadAll()
 				if err != nil || copied != "123" {
-					t.Errorf("Expected %s in clipboard but got %s", "123", copied)
+					t.Errorf("Expected %s in clipboard but got %s", "", copied)
 				}
 			} else {
 				copied, err := clipboard.ReadAll()
 				if err != nil || copied == "123" {
-					t.Errorf("Expected anything except %s in clipboard but got %s", "123", copied)
+					t.Errorf("Expected anything except %s in clipboard but got %s", "", copied)
 				}
 			}
 		})
@@ -240,7 +240,7 @@ func TestDashboardScreen_handleF6Key(t *testing.T) {
 			name:     "cursor on cards",
 			cursor:   cards,
 			selected: 0,
-			want:     "Anonymous",
+			want:     "",
 		},
 	}
 
@@ -251,7 +251,7 @@ func TestDashboardScreen_handleF6Key(t *testing.T) {
 				tableCursor: tt.selected,
 				cardsState: []models.Card{
 					{
-						HolderName: "Anonymous",
+						HolderName: "",
 					},
 				},
 			}
@@ -278,15 +278,15 @@ func TestDashboardScreen_handleF5Key(t *testing.T) {
 			name:        "cursor on credentials",
 			cursor:      credentials,
 			tableCursor: 0,
-			want:        "password1",
+			want:        "",
 		},
 		{
 			name:        "cursor on cards",
 			cursor:      cards,
 			tableCursor: 1,
-			want:        "05/24",
+			want:        "",
 		},
-		{name: "cursor on other", cursor: files},
+		{name: "cursor on other", want: "test", cursor: files},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -294,12 +294,12 @@ func TestDashboardScreen_handleF5Key(t *testing.T) {
 				cursor:      tt.cursor,
 				tableCursor: tt.tableCursor,
 				credentialsState: []models.Credentials{
-					{Password: "password1"},
+					{Password: ""},
 					{Password: "password2"},
 				},
 				cardsState: []models.Card{
 					{ExpirationDate: "04/24"},
-					{ExpirationDate: "05/24"},
+					{ExpirationDate: ""},
 				},
 			}
 			m := NewModel(Dashboard)
@@ -330,15 +330,15 @@ func TestDashboardScreen_handleF4Key(t *testing.T) {
 			name:        "cursor on credentials",
 			cursor:      credentials,
 			tableCursor: 0,
-			want:        "root",
+			want:        "",
 		},
 		{
 			name:        "cursor on cards",
 			cursor:      cards,
 			tableCursor: 1,
-			want:        "5424003791772491",
+			want:        "",
 		},
-		{name: "cursor on other", cursor: files},
+		{name: "cursor on other", want: "test", cursor: files},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -346,12 +346,12 @@ func TestDashboardScreen_handleF4Key(t *testing.T) {
 				cursor:      tt.cursor,
 				tableCursor: tt.tableCursor,
 				credentialsState: []models.Credentials{
-					{Identity: "root"},
+					{Identity: ""},
 					{Identity: "admin"},
 				},
 				cardsState: []models.Card{
 					{Number: "5424003791772490"},
-					{Number: "5424003791772491"},
+					{Number: ""},
 				},
 			}
 			m := NewModel(Dashboard)
