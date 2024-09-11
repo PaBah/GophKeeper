@@ -23,7 +23,7 @@ type Model struct {
 	signInScreen      *AuthForm
 	signUpScreen      *AuthForm
 	dashboardScreen   *DashboardScreen
-	clientService     *client.ClientService
+	clientService     client.GRPCClientProvider
 	credentialsScreen *CredentialsScreen
 	cardsScreen       *CardScreen
 	filesScreen       *FilePicker
@@ -54,6 +54,7 @@ type Styles struct {
 	Help lipgloss.Style
 }
 
+// NewStyles initializes a new Styles struct with predefined styling attributes using the provided lipgloss.Renderer instance.
 func NewStyles(lg *lipgloss.Renderer) *Styles {
 	s := Styles{}
 	s.Base = lg.NewStyle().Padding(1, 4, 0, 1)
@@ -65,13 +66,15 @@ func NewStyles(lg *lipgloss.Renderer) *Styles {
 	return &s
 }
 
+// NewModel initializes and returns a new instance of Model with the given State and sets up all necessary components.
 func NewModel(state State) Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(normalFg)
 
 	m := Model{state: state, spinner: s}
-	m.clientService = client.NewClientService(":3200")
+	clientService := client.NewClientService(":3200")
+	m.clientService = &clientService
 	m.clientService.TryToConnect()
 	m.initialScreen = &InitialForm{SelectedOption: 0}
 	m.signInScreen = NewAuthForm("Please, enter your credentials to SignIn:", func(email, password string) error {
@@ -89,6 +92,9 @@ func NewModel(state State) Model {
 	return m
 }
 
+// Update handles and processes messages to update the model's state accordingly.
+// It reacts to various types of messages, such as window size changes and key presses,
+// updating the current state of the model and triggering corresponding commands.
 func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch message := message.(type) {
 	case tea.WindowSizeMsg:
@@ -154,37 +160,33 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// View renders the current view of the application based on the model's state.
 func (m Model) View() string {
-	// 1. Определение заголовка
 	header := m.appBoundaryView("GophKeeper")
 	if m.err != nil {
 		header = m.appErrorBoundaryView(m.err.Error())
 	}
 
-	// 2. Определение тела и футера в зависимости от состояния
 	var body, footer string
 	switch m.state {
 	case Initial:
 		body = m.initialScreen.View(m)
 	case SignIn, SignUp:
-		body = m.signInOrSignUpView() // Вынесено в отдельный метод
-		footer = "shft+tab back "     // Общий футер для SignIn и SignUp
+		body = m.signInOrSignUpView()
+		footer = "shft+tab back "
 	case Dashboard:
-		body, footer = m.dashboardView() // Вынесено в отдельный метод
+		body, footer = m.dashboardView()
 	case CredentialsForm, CardForm, FileLoad:
-		body, footer = m.formView() // Объединено в один метод для форм
+		body, footer = m.formView()
 	default:
 		return m.styles.Base.Render("Oh-oh, something crashed... press ctrl+c to quit")
 	}
 
-	// 3. Добавление футера
 	footer = m.appFooterView(footer)
 
-	// 4. Финальное рендеринг
 	return m.styles.Base.Render(header + "\n" + body + "\n\n" + footer)
 }
 
-// Пример методов для упрощения
 func (m Model) signInOrSignUpView() string {
 	if m.state == SignIn {
 		return m.signInScreen.View(&m)

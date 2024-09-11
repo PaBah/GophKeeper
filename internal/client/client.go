@@ -33,8 +33,28 @@ type ClientService struct {
 	isAvailable   bool
 }
 
-func NewClientService(serverAddress string) *ClientService {
-	return &ClientService{
+type GRPCClientProvider interface {
+	SignUp(email, password string) error
+	SignIn(email, password string) error
+	CreateCredentials(ctx context.Context, serviceName, identity, password string) error
+	GetCredentials(ctx context.Context) (credentials []models.Credentials, err error)
+	UpdateCredentials(ctx context.Context, credentials models.Credentials) (updatedCredentials models.Credentials, err error)
+	DeleteCredentials(ctx context.Context, credentialsID string) (err error)
+	CreateCard(ctx context.Context, number, expirationDate, holderName, cvv string) error
+	GetCards(ctx context.Context) (cards []models.Card, err error)
+	GetFiles(ctx context.Context) (files []models.File, err error)
+	DeleteFile(ctx context.Context, name string) (err error)
+	UpdateCards(ctx context.Context, card models.Card) (updatedCard models.Card, err error)
+	DeleteCard(ctx context.Context, cardID string) (err error)
+	UploadFile(ctx context.Context, filePath string)
+	DownloadsFile(ctx context.Context, name string)
+	SubscribeToChanges(ctx context.Context) (grpc.ServerStreamingClient[pb.SubscribeToChangesResponse], error)
+	SetSessionID(sessionID string)
+	TryToConnect() bool
+}
+
+func NewClientService(serverAddress string) ClientService {
+	return ClientService{
 		serverAddress: serverAddress,
 	}
 }
@@ -301,16 +321,6 @@ func (c *ClientService) SubscribeToChanges(ctx context.Context) (grpc.ServerStre
 
 func (c *ClientService) SetSessionID(sessionID string) {
 	c.sessionID = sessionID
-}
-
-// IsNotAvailable checks if the server is not available.
-func (c *ClientService) IsNotAvailable() bool {
-	return !c.isAvailable
-}
-
-// IsAvailable checks if the server is available.
-func (c *ClientService) IsAvailable() bool {
-	return c.isAvailable
 }
 
 // TryToConnect attempts to establish a connection with the gRPC server.

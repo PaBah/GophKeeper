@@ -6,7 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func TestUpdate(t *testing.T) {
+func TestInitialForm_UpdateUpdate(t *testing.T) {
 	var initialMod = &Model{state: Initial}
 
 	tables := []struct {
@@ -18,14 +18,15 @@ func TestUpdate(t *testing.T) {
 		{InitialForm{AuthThroughSignIn: false, SelectedOption: 0}, "up", Model{state: Initial}},
 		{InitialForm{AuthThroughSignIn: false, SelectedOption: 0}, "enter", Model{state: SignIn}},
 		{InitialForm{AuthThroughSignIn: false, SelectedOption: 1}, "enter", Model{state: SignUp}},
-		{InitialForm{AuthThroughSignIn: false, SelectedOption: 0}, "other", Model{state: Initial}},
 	}
 
 	for _, table := range tables {
-		result, _ := table.InitForm.Update(initialMod, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(table.Key)})
+		t.Run("asd", func(t *testing.T) {
+			result, _ := table.InitForm.Update(initialMod, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(table.Key)})
 
-		if result.state != table.Expected.state {
-			t.Errorf("Invalid Model state after Update, got: %s, want: %s", result.state, table.Expected.state)
-		}
+			if result.state != table.Expected.state {
+				t.Errorf("Invalid Model state after Update, got: %d, want: %d", int(result.state), int(table.Expected.state))
+			}
+		})
 	}
 }

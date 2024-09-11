@@ -49,6 +49,8 @@ func validateEmail(email string) error {
 	return err
 }
 
+// Update processes incoming messages and updates the state of the AuthForm.
+// It handles key messages and dispatches them to the appropriate handlers based on the type of key.
 func (form *AuthForm) Update(m *Model, msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -187,6 +189,7 @@ func (form *AuthForm) updateFocusedInput(msg tea.Msg) (*Model, tea.Cmd) {
 	return nil, cmd
 }
 
+// View renders the AuthForm by composing the title, email input, password input, and submit button.
 func (form *AuthForm) View(m *Model) string {
 	var submitButton string
 

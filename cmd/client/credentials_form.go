@@ -49,7 +49,6 @@ func NewCredentialsScreen() *CredentialsScreen {
 	}
 }
 
-// Update обрабатывает действия пользователя
 func (form *CredentialsScreen) Update(m *Model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -86,7 +85,6 @@ func (form *CredentialsScreen) handleEnterKey(m *Model) (tea.Model, tea.Cmd) {
 	return form.updateInputs(m, tea.KeyMsg{})
 }
 
-// Валидация полей и отправка данных на сервер
 func (form *CredentialsScreen) validateAndSubmit(m *Model) error {
 	m.err = form.validateFields()
 	if m.err != nil {
