@@ -26,7 +26,6 @@ func TestClientService_SignUp(t *testing.T) {
 		name             string
 		email            string
 		password         string
-		mockResponse     pb.SignUpResponse
 		mock             func()
 		mockError        error
 		expectedErrorMsg string

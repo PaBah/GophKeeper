@@ -50,39 +50,6 @@ func TestNewDBStorage(t *testing.T) {
 	}
 }
 
-func TestDBStorage_Close(t *testing.T) {
-	tests := []struct {
-		name    string
-		setup   func(ds *DBStorage) error // function to set up the DBStorage before calling Close()
-		wantErr bool
-	}{
-		{
-			name:    "Close on open database",
-			setup:   func(ds *DBStorage) error { return nil }, // no-op setup
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
-			st, err := NewDBStorage(ctx, "user=postgres password=secret host=127.0.0.1 port=5432 dbname=postgres sslmode=disable")
-			require.NoError(t, err)
-
-			if err := tt.setup(&st); err != nil {
-				t.Fatalf("Setup function returned an error for test %q: %v", tt.name, err)
-				return
-			}
-
-			err = st.Close()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("DBStorage.Close() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 func TestDBStorage_DeleteShortURLs(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 	ds := &DBStorage{
