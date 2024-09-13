@@ -57,6 +57,7 @@ func NewClientService(serverAddress string) ClientService {
 	}
 }
 
+// SignUp registers a new user with the provided email and password, and stores the authentication token.
 func (c *ClientService) SignUp(email, password string) error {
 	resp, err := c.client.SignUp(context.Background(), &pb.SignUpRequest{
 		Email:    email,
