@@ -2,7 +2,7 @@
 // Source: /Users/paulbahush/projects/yp/GophKeeper/internal/client/client.go
 
 // Package mock_client is a generated GoMock package.
-package mocks
+package mock
 
 import (
 	context "context"

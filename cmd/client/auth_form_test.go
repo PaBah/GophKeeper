@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/PaBah/GophKeeper/internal/client"
-	"github.com/PaBah/GophKeeper/internal/mocks"
+	"github.com/PaBah/GophKeeper/internal/mock"
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/mock/gomock"
 )
@@ -83,7 +83,7 @@ func TestHandleEnterKey(t *testing.T) {
 	model := NewModel(Initial)
 	var clientMock client.GRPCClientProvider
 	ctrl := gomock.NewController(t)
-	gm := mocks.NewMockGRPCClientProvider(ctrl)
+	gm := mock.NewMockGRPCClientProvider(ctrl)
 	gm.EXPECT().
 		SignIn(gomock.Eq("test@example.com"), gomock.Any()).
 		Return(nil).

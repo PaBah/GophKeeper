@@ -10,7 +10,7 @@ import (
 	"time"
 
 	pb "github.com/PaBah/GophKeeper/internal/gen/proto/gophkeeper/v1"
-	"github.com/PaBah/GophKeeper/internal/mocks"
+	"github.com/PaBah/GophKeeper/internal/mock"
 	"github.com/PaBah/GophKeeper/internal/models"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -20,7 +20,7 @@ func TestClientService_SignUp(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name             string
@@ -110,7 +110,7 @@ func TestClientService_SignIn(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name             string
@@ -172,7 +172,7 @@ func TestClientService_CreateCredentials(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name             string
@@ -227,7 +227,7 @@ func TestClientService_GetCredentials(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name             string
@@ -328,7 +328,7 @@ func TestClientService_UpdateCredentials(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name             string
@@ -411,7 +411,7 @@ func TestClientService_DeleteCredentials(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name                 string
@@ -462,7 +462,7 @@ func TestClientService_CreateCard(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name                 string
@@ -519,7 +519,7 @@ func TestClientService_GetCards(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name                 string
@@ -611,7 +611,7 @@ func TestClientService_GetFiles(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name                 string
@@ -688,7 +688,7 @@ func TestClientService_DeleteFile(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name                 string
@@ -732,7 +732,7 @@ func TestClientService_UpdateCards(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name                 string
@@ -819,7 +819,7 @@ func TestClientService_DeleteCard(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name                 string
@@ -871,7 +871,7 @@ func TestClientService_UploadFile(t *testing.T) {
 	defer tempFile.Close()
 	_, _ = tempFile.WriteString("test")
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name  string
@@ -882,7 +882,7 @@ func TestClientService_UploadFile(t *testing.T) {
 			name:  "Valid file upload",
 			input: tempFile.Name(),
 			mock: func() {
-				stream := mocks.NewMockGophKeeperService_UploadFileClient(ctrl)
+				stream := mock.NewMockGophKeeperService_UploadFileClient(ctrl)
 				client.EXPECT().UploadFile(gomock.Any()).Return(stream, nil).Times(1)
 				stream.EXPECT().Send(gomock.Any()).Return(nil).AnyTimes()
 				stream.EXPECT().CloseSend().Return(nil).Times(1)
@@ -893,7 +893,7 @@ func TestClientService_UploadFile(t *testing.T) {
 			name:  "Invalid file path",
 			input: "tempFile.Name()",
 			mock: func() {
-				stream := mocks.NewMockGophKeeperService_UploadFileClient(ctrl)
+				stream := mock.NewMockGophKeeperService_UploadFileClient(ctrl)
 				stream.EXPECT().Send(gomock.Any()).Return(nil).AnyTimes()
 			},
 		},
@@ -901,7 +901,7 @@ func TestClientService_UploadFile(t *testing.T) {
 			name:  "Can not upload file",
 			input: tempFile.Name(),
 			mock: func() {
-				stream := mocks.NewMockGophKeeperService_UploadFileClient(ctrl)
+				stream := mock.NewMockGophKeeperService_UploadFileClient(ctrl)
 				client.EXPECT().UploadFile(gomock.Any()).Return(stream, errors.New("can not upload")).Times(1)
 				stream.EXPECT().Send(gomock.Any()).Return(nil).AnyTimes()
 			},
@@ -910,7 +910,7 @@ func TestClientService_UploadFile(t *testing.T) {
 			name:  "Can not Send",
 			input: tempFile.Name(),
 			mock: func() {
-				stream := mocks.NewMockGophKeeperService_UploadFileClient(ctrl)
+				stream := mock.NewMockGophKeeperService_UploadFileClient(ctrl)
 				client.EXPECT().UploadFile(gomock.Any()).Return(stream, nil).Times(1)
 				stream.EXPECT().Send(gomock.Any()).Return(errors.New("test err")).AnyTimes()
 			},
@@ -919,7 +919,7 @@ func TestClientService_UploadFile(t *testing.T) {
 			name:  "Can not CloseSend",
 			input: tempFile.Name(),
 			mock: func() {
-				stream := mocks.NewMockGophKeeperService_UploadFileClient(ctrl)
+				stream := mock.NewMockGophKeeperService_UploadFileClient(ctrl)
 				client.EXPECT().UploadFile(gomock.Any()).Return(stream, nil).Times(1)
 				stream.EXPECT().Send(gomock.Any()).Return(nil).AnyTimes()
 				stream.EXPECT().CloseSend().Return(errors.New("test")).Times(1)
@@ -929,7 +929,7 @@ func TestClientService_UploadFile(t *testing.T) {
 			name:  "Can not Recv",
 			input: tempFile.Name(),
 			mock: func() {
-				stream := mocks.NewMockGophKeeperService_UploadFileClient(ctrl)
+				stream := mock.NewMockGophKeeperService_UploadFileClient(ctrl)
 				client.EXPECT().UploadFile(gomock.Any()).Return(stream, nil).Times(1)
 				stream.EXPECT().Send(gomock.Any()).Return(nil).AnyTimes()
 				stream.EXPECT().CloseSend().Return(nil).Times(1)
@@ -951,7 +951,7 @@ func TestClientService_DownloadsFile(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 
 	testTable := []struct {
 		name                 string
@@ -963,7 +963,7 @@ func TestClientService_DownloadsFile(t *testing.T) {
 			name:  "Valid download",
 			input: "validFile",
 			mock: func() {
-				stream := mocks.NewMockGophKeeperService_DownloadFileClient(ctrl)
+				stream := mock.NewMockGophKeeperService_DownloadFileClient(ctrl)
 				client.EXPECT().DownloadFile(gomock.Any(), &pb.DownloadFileRequest{Name: "validFile"}).Return(stream, nil)
 				stream.EXPECT().Recv().Return(&pb.DownloadFileResponse{Data: []byte("test data")}, nil).Times(1)
 				stream.EXPECT().Recv().Return(nil, io.EOF)
@@ -980,7 +980,7 @@ func TestClientService_DownloadsFile(t *testing.T) {
 			name:  "Error when receiving chunks",
 			input: "validFile",
 			mock: func() {
-				stream := mocks.NewMockGophKeeperService_DownloadFileClient(ctrl)
+				stream := mock.NewMockGophKeeperService_DownloadFileClient(ctrl)
 				client.EXPECT().DownloadFile(gomock.Any(), &pb.DownloadFileRequest{Name: "validFile"}).Return(stream, nil)
 				stream.EXPECT().Recv().Return(nil, errors.New("error in Recv"))
 			},
@@ -989,7 +989,7 @@ func TestClientService_DownloadsFile(t *testing.T) {
 			name:  "Can not Create",
 			input: "",
 			mock: func() {
-				stream := mocks.NewMockGophKeeperService_DownloadFileClient(ctrl)
+				stream := mock.NewMockGophKeeperService_DownloadFileClient(ctrl)
 				client.EXPECT().DownloadFile(gomock.Any(), &pb.DownloadFileRequest{Name: ""}).Return(stream, nil)
 			},
 		},
@@ -1042,8 +1042,8 @@ func TestClientService_SubscribeToChanges_Valid(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
-	stream := mocks.NewMockGophKeeperService_SubscribeToChangesClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
+	stream := mock.NewMockGophKeeperService_SubscribeToChangesClient(ctrl)
 
 	client.EXPECT().SubscribeToChanges(gomock.Any(), &pb.SubscribeToChangesRequest{}).Return(stream, nil)
 
@@ -1055,7 +1055,7 @@ func TestClientService_SubscribeToChanges_Valid(t *testing.T) {
 func TestClientService_TryToConnect_Error(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	client := mocks.NewMockGophKeeperServiceClient(ctrl)
+	client := mock.NewMockGophKeeperServiceClient(ctrl)
 	c := ClientService{client: client, serverAddress: ""}
 	isConnected := c.TryToConnect()
 	require.True(t, isConnected)

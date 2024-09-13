@@ -2,7 +2,7 @@
 // Source: /Users/paulbahush/projects/yp/GophKeeper/internal/storage/repository.go
 
 // Package mock_storage is a generated GoMock package.
-package mocks
+package mock
 
 import (
 	context "context"

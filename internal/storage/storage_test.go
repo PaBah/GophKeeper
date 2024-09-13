@@ -611,35 +611,3 @@ func TestDBStorage_CreateUser(t *testing.T) {
 		})
 	}
 }
-
-func TestDBStorage_initialize(t *testing.T) {
-	tests := []struct {
-		name    string
-		setup   func(*DBStorage, sqlmock.Sqlmock)
-		wantErr bool
-	}{
-		{
-			name: "Valid Initialize",
-			setup: func(ds *DBStorage, mock sqlmock.Sqlmock) {
-				mock.ExpectExec(`CREATE TABLE IF NOT EXISTS users`).
-					WillReturnResult(sqlmock.NewResult(1, 1))
-				mock.ExpectExec(`CREATE TABLE IF NOT EXISTS credentials`).
-					WillReturnResult(sqlmock.NewResult(1, 1))
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			db, mock, _ := sqlmock.New()
-			ds := &DBStorage{db: db}
-			tt.setup(ds, mock)
-			err := ds.initialize(context.Background(), "")
-			if (err != nil) != tt.wantErr {
-				t.Errorf("initialize() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}

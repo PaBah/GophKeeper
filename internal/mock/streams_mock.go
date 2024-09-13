@@ -2,7 +2,7 @@
 // Source: /Users/paulbahush/projects/yp/GophKeeper/internal/mocks/stream_interfaces.go
 
 // Package mock_mocks is a generated GoMock package.
-package mocks
+package mock
 
 import (
 	context "context"

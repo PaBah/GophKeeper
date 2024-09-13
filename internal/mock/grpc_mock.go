@@ -2,7 +2,7 @@
 // Source: /Users/paulbahush/projects/yp/GophKeeper/internal/gen/proto/gophkeeper/v1/service_grpc.pb.go
 
 // Package mock_proto is a generated GoMock package.
-package mocks
+package mock
 
 import (
 	context "context"

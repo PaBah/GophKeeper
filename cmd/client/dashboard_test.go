@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/PaBah/GophKeeper/internal/client"
-	"github.com/PaBah/GophKeeper/internal/mocks"
+	"github.com/PaBah/GophKeeper/internal/mock"
 	"github.com/PaBah/GophKeeper/internal/models"
 	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -58,7 +58,7 @@ func TestDashboardScreen_HandleKeyMsg(t *testing.T) {
 	}
 	var clientMock client.GRPCClientProvider
 	ctrl := gomock.NewController(t)
-	gm := mocks.NewMockGRPCClientProvider(ctrl)
+	gm := mock.NewMockGRPCClientProvider(ctrl)
 	gm.EXPECT().
 		GetCredentials(gomock.Any()).
 		Return([]models.Credentials{models.Credentials{}}, nil).
@@ -88,7 +88,7 @@ func TestDashboardScreen_HandleKeyMsg(t *testing.T) {
 }
 func TestDashboardScreen_LoadActual(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	gm := mocks.NewMockGRPCClientProvider(ctrl)
+	gm := mock.NewMockGRPCClientProvider(ctrl)
 	gm.EXPECT().GetCredentials(gomock.Any()).Return([]models.Credentials{models.Credentials{}}, nil).AnyTimes()
 	gm.EXPECT().GetCards(gomock.Any()).Return([]models.Card{models.Card{}}, nil).AnyTimes()
 	gm.EXPECT().GetFiles(gomock.Any()).Return([]models.File{models.File{}}, nil).AnyTimes()
@@ -400,7 +400,7 @@ func TestDashboardScreen_handleF3Key(t *testing.T) {
 	}
 	var clientMock client.GRPCClientProvider
 	ctrl := gomock.NewController(t)
-	gm := mocks.NewMockGRPCClientProvider(ctrl)
+	gm := mock.NewMockGRPCClientProvider(ctrl)
 	gm.EXPECT().GetCredentials(gomock.Any()).Return([]models.Credentials{models.Credentials{}}, nil).AnyTimes()
 	gm.EXPECT().GetCards(gomock.Any()).Return([]models.Card{models.Card{Number: "5424003791772490"}}, nil).AnyTimes()
 	gm.EXPECT().GetFiles(gomock.Any()).Return([]models.File{models.File{}}, nil).AnyTimes()
@@ -463,7 +463,7 @@ func TestDashboardScreen_handleF2Key(t *testing.T) {
 	}
 	var clientMock client.GRPCClientProvider
 	ctrl := gomock.NewController(t)
-	gm := mocks.NewMockGRPCClientProvider(ctrl)
+	gm := mock.NewMockGRPCClientProvider(ctrl)
 	gm.EXPECT().DownloadsFile(gomock.Any(), gomock.Any()).Return().AnyTimes()
 	clientMock = gm
 	for _, tt := range tests {

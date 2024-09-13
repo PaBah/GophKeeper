@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/PaBah/GophKeeper/internal/client"
-	"github.com/PaBah/GophKeeper/internal/mocks"
+	"github.com/PaBah/GophKeeper/internal/mock"
 	"github.com/PaBah/GophKeeper/internal/models"
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/mock/gomock"
@@ -13,7 +13,7 @@ import (
 func TestUpdate(t *testing.T) {
 	var clientMock client.GRPCClientProvider
 	ctrl := gomock.NewController(t)
-	gm := mocks.NewMockGRPCClientProvider(ctrl)
+	gm := mock.NewMockGRPCClientProvider(ctrl)
 	gm.EXPECT().
 		SignIn(gomock.Eq("test@example.com"), gomock.Any()).
 		Return(nil).
@@ -61,7 +61,7 @@ func TestUpdate(t *testing.T) {
 func TestCardHandleEnterKey(t *testing.T) {
 	var clientMock client.GRPCClientProvider
 	ctrl := gomock.NewController(t)
-	gm := mocks.NewMockGRPCClientProvider(ctrl)
+	gm := mock.NewMockGRPCClientProvider(ctrl)
 	gm.EXPECT().
 		CreateCard(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).

@@ -10,7 +10,7 @@ import (
 
 	"github.com/PaBah/GophKeeper/internal/config"
 	pb "github.com/PaBah/GophKeeper/internal/gen/proto/gophkeeper/v1"
-	"github.com/PaBah/GophKeeper/internal/mocks"
+	"github.com/PaBah/GophKeeper/internal/mock"
 	"github.com/PaBah/GophKeeper/internal/models"
 	"github.com/PaBah/GophKeeper/internal/storage"
 	"github.com/PaBah/GophKeeper/internal/utils"
@@ -19,7 +19,7 @@ import (
 
 func TestNewGrpcServer(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	rm := mocks.NewMockRepository(ctrl)
+	rm := mock.NewMockRepository(ctrl)
 	tests := []struct {
 		name    string
 		config  *config.ServerConfig
@@ -48,7 +48,7 @@ func TestSignIn(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mocks.NewMockRepository(ctrl)
+	repo := mock.NewMockRepository(ctrl)
 	srv := &GrpcServer{
 		storage:     repo,
 		config:      &config.ServerConfig{Secret: "testing secret"},
@@ -106,7 +106,7 @@ func TestSignIn(t *testing.T) {
 func TestCreateCredentials(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	repo := mocks.NewMockRepository(ctrl)
+	repo := mock.NewMockRepository(ctrl)
 	srv := &GrpcServer{
 		storage:     repo,
 		config:      &config.ServerConfig{Secret: "testing secret"},
@@ -173,7 +173,7 @@ func TestGetCredentials(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mocks.NewMockRepository(ctrl)
+	repo := mock.NewMockRepository(ctrl)
 	srv := &GrpcServer{
 		storage:     repo,
 		config:      &config.ServerConfig{Secret: "testing secret"},
@@ -246,7 +246,7 @@ func TestUpdateCredentials(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mocks.NewMockRepository(ctrl)
+	repo := mock.NewMockRepository(ctrl)
 	srv := &GrpcServer{
 		storage:     repo,
 		config:      &config.ServerConfig{Secret: "testing secret"},
@@ -307,7 +307,7 @@ func TestDeleteCredentials(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mocks.NewMockRepository(ctrl)
+	repo := mock.NewMockRepository(ctrl)
 	srv := &GrpcServer{
 		storage:     repo,
 		config:      &config.ServerConfig{Secret: "testing secret"},
@@ -354,7 +354,7 @@ func TestCreateCard(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mocks.NewMockRepository(ctrl)
+	repo := mock.NewMockRepository(ctrl)
 	srv := &GrpcServer{
 		storage:     repo,
 		config:      &config.ServerConfig{Secret: "testing secret"},
@@ -438,7 +438,7 @@ func TestGrpcServer_GetCards(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mocks.NewMockRepository(ctrl)
+	repo := mock.NewMockRepository(ctrl)
 	srv := &GrpcServer{
 		storage:     repo,
 		config:      &config.ServerConfig{Secret: "testing secret"},
@@ -513,7 +513,7 @@ func TestUpdateCards(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mocks.NewMockRepository(ctrl)
+	repo := mock.NewMockRepository(ctrl)
 	srv := &GrpcServer{
 		storage:     repo,
 		config:      &config.ServerConfig{Secret: "testing secret"},
@@ -589,7 +589,7 @@ func TestDeleteCards(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mocks.NewMockRepository(ctrl)
+	repo := mock.NewMockRepository(ctrl)
 	srv := &GrpcServer{
 		storage:     repo,
 		config:      &config.ServerConfig{Secret: "testing secret"},

@@ -1,4 +1,4 @@
-package mocks
+package mock
 
 import (
 	pb "github.com/PaBah/GophKeeper/internal/gen/proto/gophkeeper/v1"

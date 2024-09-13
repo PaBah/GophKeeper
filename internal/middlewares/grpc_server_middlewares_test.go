@@ -10,7 +10,7 @@ import (
 	"github.com/PaBah/GophKeeper/internal/auth"
 	"github.com/PaBah/GophKeeper/internal/config"
 	proto "github.com/PaBah/GophKeeper/internal/gen/proto/gophkeeper/v1"
-	"github.com/PaBah/GophKeeper/internal/mocks"
+	"github.com/PaBah/GophKeeper/internal/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc"
@@ -238,14 +238,14 @@ func TestStreamAuthInterceptor(t *testing.T) {
 		token      string
 		wantErr    bool
 		wantCode   codes.Code
-		setup      func(mockStream *mocks.MockMockServerStream)
+		setup      func(mockStream *mock.MockMockServerStream)
 	}{
 		{
 			name:       "ValidToken",
 			fullMethod: "/package.Service/StreamMethod",
 			token:      validToken,
 			wantErr:    false,
-			setup: func(mockStream *mocks.MockMockServerStream) {
+			setup: func(mockStream *mock.MockMockServerStream) {
 				md := metadata.New(map[string]string{
 					string(config.AUTHORIZATIONHEADER): string(config.TOKENPREFIX) + validToken,
 				})
@@ -259,7 +259,7 @@ func TestStreamAuthInterceptor(t *testing.T) {
 			token:      invalidToken,
 			wantErr:    true,
 			wantCode:   codes.Unauthenticated,
-			setup: func(mockStream *mocks.MockMockServerStream) {
+			setup: func(mockStream *mock.MockMockServerStream) {
 				md := metadata.New(map[string]string{
 					string(config.AUTHORIZATIONHEADER): invalidToken,
 				})
@@ -273,7 +273,7 @@ func TestStreamAuthInterceptor(t *testing.T) {
 			token:      "",
 			wantErr:    true,
 			wantCode:   codes.Internal,
-			setup: func(mockStream *mocks.MockMockServerStream) {
+			setup: func(mockStream *mock.MockMockServerStream) {
 				ctx := context.Background()
 				mockStream.EXPECT().Context().Return(ctx).AnyTimes()
 			},
@@ -283,7 +283,7 @@ func TestStreamAuthInterceptor(t *testing.T) {
 			fullMethod: "/package.Service/StreamMethod",
 			token:      "",
 			wantErr:    true,
-			setup: func(mockStream *mocks.MockMockServerStream) {
+			setup: func(mockStream *mock.MockMockServerStream) {
 				md := metadata.New(map[string]string{})
 				ctx := metadata.NewIncomingContext(context.Background(), md)
 				mockStream.EXPECT().Context().Return(ctx).AnyTimes()
@@ -296,7 +296,7 @@ func TestStreamAuthInterceptor(t *testing.T) {
 			token:      "",
 			wantErr:    true,
 			wantCode:   codes.Unauthenticated,
-			setup: func(mockStream *mocks.MockMockServerStream) {
+			setup: func(mockStream *mock.MockMockServerStream) {
 				md := metadata.New(map[string]string{
 					string(config.AUTHORIZATIONHEADER): "",
 				})
@@ -311,7 +311,7 @@ func TestStreamAuthInterceptor(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockStream := mocks.NewMockMockServerStream(ctrl)
+			mockStream := mock.NewMockMockServerStream(ctrl)
 			tt.setup(mockStream)
 
 			info := &grpc.StreamServerInfo{
