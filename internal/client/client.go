@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -49,7 +48,6 @@ type GRPCClientProvider interface {
 	UploadFile(ctx context.Context, filePath string)
 	DownloadsFile(ctx context.Context, name string)
 	SubscribeToChanges(ctx context.Context) (grpc.ServerStreamingClient[pb.SubscribeToChangesResponse], error)
-	SetSessionID(sessionID string)
 	TryToConnect() bool
 }
 
@@ -245,13 +243,15 @@ func (c *ClientService) DeleteCard(ctx context.Context, cardID string) (err erro
 func (c *ClientService) UploadFile(ctx context.Context, filePath string) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Fatalf("could not open file: %v", err)
+		logger.Log().Error("could not open file:", zap.Error(err))
+		return
 	}
 	defer file.Close()
 
 	stream, err := c.client.UploadFile(c.getCtx(ctx, c.token))
 	if err != nil {
-		log.Fatalf("could not upload file: %v", err)
+		logger.Log().Error("could not upload file:", zap.Error(err))
+		return
 	}
 
 	buffer := make([]byte, 1024)
@@ -261,27 +261,29 @@ func (c *ClientService) UploadFile(ctx context.Context, filePath string) {
 			break
 		}
 		if err != nil {
-			log.Fatalf("could not read file: %v", err)
+			logger.Log().Error("could not read file:", zap.Error(err))
+			return
 		}
 
 		if err := stream.Send(&pb.UploadFileRequest{
 			Data:     buffer[:n],
 			Filename: filepath.Base(filePath),
 		}); err != nil {
-			log.Fatalf("could not send chunk: %v", err)
+			logger.Log().Error("could not send chunk:", zap.Error(err))
+			return
 		}
 	}
-	// Завершаем передачу
 	if err := stream.CloseSend(); err != nil {
-		log.Fatalf("could not close stream: %v", err)
+		logger.Log().Error("could not close stream:", zap.Error(err))
+		return
 	}
 
-	// Получаем ответ от сервера
 	resp, err := stream.Recv()
 	if err != nil {
-		log.Fatalf("could not receive response: %v", err)
+		logger.Log().Error("could not receive response:", zap.Error(err))
+		return
 	}
-	log.Printf("Response from server: %s", resp.Message)
+	logger.Log().Info("Response from server:", zap.Any("response", resp))
 }
 
 func (c *ClientService) DownloadsFile(ctx context.Context, name string) {
@@ -289,12 +291,14 @@ func (c *ClientService) DownloadsFile(ctx context.Context, name string) {
 
 	stream, err := c.client.DownloadFile(c.getCtx(ctx, c.token), req)
 	if err != nil {
-		log.Fatalf("error downloading file: %v", err)
+		logger.Log().Error("error downloading file: ", zap.Error(err))
+		return
 	}
 
 	localFile, err := os.Create(name)
 	if err != nil {
-		log.Fatalf("could not create local file: %v", err)
+		logger.Log().Error("could not create local file: ", zap.Error(err))
+		return
 	}
 	defer localFile.Close()
 
@@ -304,23 +308,21 @@ func (c *ClientService) DownloadsFile(ctx context.Context, name string) {
 			break
 		}
 		if err != nil {
-			log.Fatalf("error receiving chunk: %v", err)
+			logger.Log().Error("error receiving chunk: ", zap.Error(err))
+			return
 		}
 
 		if _, err := localFile.Write(resp.Data); err != nil {
-			log.Fatalf("error writing to local file: %v", err)
+			logger.Log().Error("error writing to local file: ", zap.Error(err))
+			return
 		}
 	}
 
-	log.Println("File downloaded successfully.")
+	logger.Log().Info("File downloaded successfully.")
 }
 
 func (c *ClientService) SubscribeToChanges(ctx context.Context) (grpc.ServerStreamingClient[pb.SubscribeToChangesResponse], error) {
 	return c.client.SubscribeToChanges(c.getCtx(ctx, c.token), &pb.SubscribeToChangesRequest{})
-}
-
-func (c *ClientService) SetSessionID(sessionID string) {
-	c.sessionID = sessionID
 }
 
 // TryToConnect attempts to establish a connection with the gRPC server.

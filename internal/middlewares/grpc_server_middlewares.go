@@ -154,10 +154,5 @@ func (m GRPCServerMiddleware) StreamAuthInterceptor(srv interface{},
 	wrappedStream := grpc_middleware.WrapServerStream(ss)
 	wrappedStream.WrappedContext = sessionCtx
 
-	//userCtx = context.WithValue(sessionCtx, config.USERIDCONTEXTKEY, userID)
-	//sessionCtx = context.WithValue(userCtx, config.SESSIONIDCONTEXTKEY, sessionID)
-	//wrappedStream = grpc_middleware.WrapServerStream(ss)
-	//wrappedStream.WrappedContext = sessionCtx
-
 	return handler(srv, wrappedStream)
 }

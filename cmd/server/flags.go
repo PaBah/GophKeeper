@@ -29,7 +29,7 @@ func ParseFlags(options *config.ServerConfig) {
 	flag.StringVar(&options.GRPCAddress, "g", ":3200", "host:port on which gRPC run")
 	flag.StringVar(&options.DatabaseDSN, "d", "host=localhost user=paulbahush dbname=gophkeeper password=", "database DSN address")
 	flag.StringVar(&options.LogsLevel, "l", "debug", "logs level")
-	flag.StringVar(&options.MinIOAddress, "m", "minio:9000", "address of minio")
+	flag.StringVar(&options.MinIOAddress, "m", "127.0.0.1:9000", "address of minio")
 	flag.StringVar(&options.MinIOLogin, "k", "admin", "login for minio")
 	flag.StringVar(&options.MinIOPassword, "p", "password123", "password for minio")
 	flag.Parse()

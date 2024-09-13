@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"testing"
 
@@ -17,7 +18,8 @@ func TestParseFlags(t *testing.T) {
 		{
 			name:          "got from ENV",
 			expectedValue: []string{":8888", "test", "info", "minio:9000", "test", "test", "test"},
-			envValues:     []string{":8888", "test", "info", "minio:9000", "test", "test", "test"}},
+			envValues:     []string{":8888", "test", "info", "minio:9000", "test", "test", "test"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -37,6 +39,49 @@ func TestParseFlags(t *testing.T) {
 			assert.Equal(t, options.MinIOAddress, tt.expectedValue[3], "Правльно распаршеный MINIO_ADDRESS")
 			assert.Equal(t, options.MinIOLogin, tt.expectedValue[4], "Правльно распаршеный MINIO_LOGIN")
 			assert.Equal(t, options.MinIOPassword, tt.expectedValue[5], "Правльно распаршеный MINIO_PASSWORD")
+		})
+	}
+}
+func TestIsFlagPassed(t *testing.T) {
+	tests := []struct {
+		name     string
+		flagName string
+		setup    func()
+		want     bool
+	}{
+		{
+			name:     "Flag is passed",
+			flagName: "testflag",
+			setup: func() {
+				flag.String("testflag", "default", "Test flag")
+				os.Args = append(os.Args, "-testflag=value")
+				flag.Parse()
+			},
+			want: true,
+		},
+		{
+			name:     "Flag is not passed",
+			flagName: "otherflag",
+			setup: func() {
+				flag.String("otherflag", "default", "Test flag")
+				flag.Parse()
+			},
+			want: false,
+		},
+		{
+			name:     "does not exist",
+			flagName: "nonexistentflag",
+			setup: func() {
+				flag.Parse()
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			got := isFlagPassed(tt.flagName)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

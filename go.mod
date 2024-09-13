@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.2-20240717164558-a6c49f84cc0f.2
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/bubbles v0.19.0
 	github.com/charmbracelet/bubbletea v0.27.1
