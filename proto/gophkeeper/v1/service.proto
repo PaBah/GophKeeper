@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/PaBah/url-shortener.git/proto";
+
+package proto.gophkeeper.v1;
+
+// GophKeeperService service provides ability to store date securely
+service GophKeeperService {
+  rpc SignUp(SignUpRequest) returns (SignUpResponse);
+  rpc SignIn(SignInRequest) returns (SignInResponse);
+
+  rpc CreateCredentials(CreateCredentialsRequest) returns (CreateCredentialsResponse);
+  rpc GetCredentials(GetCredentialsRequest) returns (GetCredentialsResponse);
+  rpc UpdateCredentials(UpdateCredentialsRequest) returns (UpdateCredentialsResponse);
+  rpc DeleteCredentials(DeleteCredentialsRequest) returns (DeleteCredentialsResponse);
+
+  rpc CreateCard(CreateCardRequest) returns (CreateCardResponse);
+  rpc GetCards(GetCardsRequest) returns (GetCardsResponse);
+  rpc UpdateCard(UpdateCardRequest) returns (UpdateCardResponse);
+  rpc DeleteCard(DeleteCardRequest) returns (DeleteCardResponse);
+
+  rpc GetFiles(GetFilesRequest) returns (GetFilesResponse);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+
+  rpc SubscribeToChanges(SubscribeToChangesRequest) returns (stream SubscribeToChangesResponse);
+  rpc UploadFile(stream UploadFileRequest) returns (stream UploadFileResponse);
+  rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
+}
+
+message SignUpRequest {
+  string email = 1 [ (buf.validate.field).string.email = true ];
+  string password = 2 [ (buf.validate.field).string.min_len = 1 ];
+}
+
+message SignUpResponse {
+  string token = 1 [ (buf.validate.field).string.min_len = 1 ];
+}
+
+message SignInRequest {
+  string email = 1 [ (buf.validate.field).string.email = true ];
+  string password = 2 [ (buf.validate.field).string.min_len = 1 ];
+}
+
+message SignInResponse {
+  string token = 1 [ (buf.validate.field).string.min_len = 1 ];
+}
+
+message CreateCredentialsRequest {
+  string service_name = 1 [ (buf.validate.field).string.min_len = 1 ];
+  string identity = 2 [ (buf.validate.field).string.min_len = 1 ];
+  string password = 3 [ (buf.validate.field).string.min_len = 1 ];
+}
+
+message CreateCredentialsResponse {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+  string service_name = 2;
+  string uploaded_at = 3;
+}
+
+message GetCredentialsRequest {
+}
+
+message GetCredentialsResponse {
+  message Credential {
+    string id = 1 [ (buf.validate.field).string.uuid = true ];
+    string service_name = 2;
+    string identity = 3;
+    string password = 4;
+    string uploaded_at = 5;
+  }
+  repeated Credential credentials = 1;
+}
+
+message UpdateCredentialsRequest {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+  string service_name = 2 [ (buf.validate.field).string.min_len = 1 ];
+  string identity = 3 [ (buf.validate.field).string.min_len = 1 ];
+  string password = 4 [ (buf.validate.field).string.min_len = 1 ];
+}
+
+message UpdateCredentialsResponse {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+  string service_name = 2;
+  string uploaded_at = 3;
+}
+
+message DeleteCredentialsRequest {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+}
+
+message DeleteCredentialsResponse {
+}
+
+message CreateCardRequest {
+  string number = 1 [ (buf.validate.field).string.len = 16 ];
+  string expiration_date = 2 [ (buf.validate.field).string.len = 5 ];
+  string holder_name = 3 [ (buf.validate.field).string.min_len = 1 ];
+  string cvv = 4 [ (buf.validate.field).string.len = 3 ];
+}
+
+message CreateCardResponse {
+  string last_digits = 1;
+  string expiration_date = 2;
+  string uploaded_at = 3;
+}
+
+message GetCardsRequest {
+}
+
+message GetCardsResponse {
+  message Card {
+    string id = 1 [ (buf.validate.field).string.uuid = true ];
+    string number = 2 [ (buf.validate.field).string.len = 16 ];
+    string expiration_date = 3 [ (buf.validate.field).string.len = 5 ];
+    string holder_name = 4 [ (buf.validate.field).string.min_len = 1 ];
+    string cvv = 5  [ (buf.validate.field).string.len = 3 ];
+    string uploaded_at = 6;
+  }
+  repeated Card cards = 1;
+}
+
+message UpdateCardRequest {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+  string number = 2;
+  string expiration_date = 3;
+  string holder_name = 4;
+  string cvv = 5;
+}
+
+message UpdateCardResponse {
+  string last_digits = 1;
+  string expiration_date = 2;
+  string uploaded_at = 3;
+}
+
+message DeleteCardRequest {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+}
+
+message DeleteCardResponse {
+}
+
+message SubscribeToChangesRequest {
+}
+
+message SubscribeToChangesResponse {
+  int32 source = 1;
+  string id = 2;
+}
+
+message UploadFileRequest {
+  bytes data = 1;
+  string filename = 2;
+}
+
+message UploadFileResponse {
+  string message = 1;
+  bool success = 2;
+}
+
+message GetFilesRequest {
+}
+
+message GetFilesResponse {
+  message File {
+    string name = 1;
+    string uploaded_at = 2;
+    string size = 3;
+  }
+  repeated File files = 1;
+}
+
+message DeleteFileRequest {
+  string name = 1;
+}
+
+message DeleteFileResponse {
+}
+
+message DownloadFileRequest {
+  string name = 1;
+}
+
+message DownloadFileResponse {
+  bytes data = 1;
+}
