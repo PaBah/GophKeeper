@@ -35,9 +35,6 @@ func TestClientService_SignUp(t *testing.T) {
 			name:     "Valid Inputs",
 			email:    "test@example.com",
 			password: "password",
-			mockResponse: pb.SignUpResponse{
-				Token: "testToken",
-			},
 			mock: func() {
 				client.EXPECT().SignUp(gomock.Any(), gomock.Any()).Return(&pb.SignUpResponse{Token: "testToken"}, nil)
 			},
@@ -45,10 +42,9 @@ func TestClientService_SignUp(t *testing.T) {
 			expectedErrorMsg: "",
 		},
 		{
-			name:         "Empty Inputs",
-			email:        "",
-			password:     "",
-			mockResponse: pb.SignUpResponse{},
+			name:     "Empty Inputs",
+			email:    "",
+			password: "",
 			mock: func() {
 				client.EXPECT().SignUp(gomock.Any(), gomock.Any()).Return(&pb.SignUpResponse{}, errors.New("SignUp: invalid inputs"))
 			},
@@ -56,10 +52,9 @@ func TestClientService_SignUp(t *testing.T) {
 			expectedErrorMsg: "SignUp: invalid inputs",
 		},
 		{
-			name:         "Invalid Email",
-			email:        "invalidEmail",
-			password:     "password",
-			mockResponse: pb.SignUpResponse{},
+			name:     "Invalid Email",
+			email:    "invalidEmail",
+			password: "password",
 			mock: func() {
 				client.EXPECT().SignUp(gomock.Any(), gomock.Any()).Return(&pb.SignUpResponse{}, errors.New("SignUp: invalid email"))
 			},
@@ -122,7 +117,6 @@ func TestClientService_SignIn(t *testing.T) {
 		name             string
 		email            string
 		password         string
-		mockResponse     pb.SignInResponse
 		mock             func()
 		mockError        error
 		expectedErrorMsg string
@@ -131,9 +125,6 @@ func TestClientService_SignIn(t *testing.T) {
 			name:     "Correct Inputs",
 			email:    "test@example.com",
 			password: "password",
-			mockResponse: pb.SignInResponse{
-				Token: "testToken",
-			},
 			mock: func() {
 				client.EXPECT().SignIn(gomock.Any(), gomock.Any()).Return(&pb.SignInResponse{Token: "testToken"}, nil)
 			},
@@ -141,10 +132,9 @@ func TestClientService_SignIn(t *testing.T) {
 			expectedErrorMsg: "",
 		},
 		{
-			name:         "Empty Inputs",
-			email:        "",
-			password:     "",
-			mockResponse: pb.SignInResponse{},
+			name:     "Empty Inputs",
+			email:    "",
+			password: "",
 			mock: func() {
 				client.EXPECT().SignIn(gomock.Any(), gomock.Any()).Return(&pb.SignInResponse{}, errors.New("SignIn: invalid inputs"))
 			},
@@ -152,10 +142,9 @@ func TestClientService_SignIn(t *testing.T) {
 			expectedErrorMsg: "SignIn: invalid inputs",
 		},
 		{
-			name:         "Invalid Email",
-			email:        "invalidEmail",
-			password:     "password",
-			mockResponse: pb.SignInResponse{},
+			name:     "Invalid Email",
+			email:    "invalidEmail",
+			password: "password",
 			mock: func() {
 				client.EXPECT().SignIn(gomock.Any(), gomock.Any()).Return(&pb.SignInResponse{}, errors.New("SignIn: invalid email"))
 			},

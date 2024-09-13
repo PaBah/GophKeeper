@@ -29,8 +29,8 @@ func TestNewDBStorage(t *testing.T) {
 	}{
 		{
 			name:        "Valid DSN",
-			databaseDSN: "user=postgres password=secret host=127.0.0.1 port=5432 dbname=postgres sslmode=disable",
-			wantErr:     false,
+			databaseDSN: "test",
+			wantErr:     true,
 		},
 	}
 

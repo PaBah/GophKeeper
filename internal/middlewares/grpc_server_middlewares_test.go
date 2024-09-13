@@ -80,7 +80,8 @@ func TestGRPCServerMiddleware_AuthInterceptor(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 			md := metadata.Pairs(string(config.AUTHORIZATIONHEADER), tt.authorizationHeader)
-			ctx, _ = context.WithTimeout(ctx, time.Second*5)
+			ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+			defer cancel()
 			ctx = metadata.NewIncomingContext(ctx, md)
 
 			m := GRPCServerMiddleware{secret: "valid_secret"}
