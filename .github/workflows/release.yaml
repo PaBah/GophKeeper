@@ -24,7 +24,7 @@ jobs:
           echo RELEASE_TIME=$(date -u +%Y/%m/%d-%H:%M:%S) >> $GITHUB_ENV
           echo RELEASE_COMMIT=`echo ${GITHUB_SHA} | cut -c1-8` >> $GITHUB_ENV
           echo REPOSITORY_NAME=${GITHUB_REPOSITORY#*/} >> $GITHUB_ENV
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: wangyoucao577/go-release-action@v1.51
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
