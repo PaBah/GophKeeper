@@ -25,7 +25,7 @@ jobs:
           echo RELEASE_COMMIT=`echo ${GITHUB_SHA} | cut -c1-8` >> $GITHUB_ENV
           echo REPOSITORY_NAME=${GITHUB_REPOSITORY#*/} >> $GITHUB_ENV
       - uses: actions/checkout@v3
-      - uses: wangyoucao577/go-release-action@v1.51
+      - uses: wangyoucao577/go-release-action@v1.52
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
